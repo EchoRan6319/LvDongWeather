@@ -1,0 +1,49 @@
+name: lvdongweather
+description: "律动天气 - 一款使用 Material You Design 的天气应用"
+publish_to: 'none'
+
+version: 1.2.1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  shared_preferences: ^2.3.3
+  provider: ^6.1.2
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  flutter_dotenv: ^5.2.1
+  intl: ^0.20.1
+  fl_chart: ^0.69.0
+  cached_network_image: ^3.4.1
+  flutter_animate: ^4.5.2
+  dynamic_color: ^1.7.0
+  flutter_local_notifications: ^18.0.1
+  permission_handler: ^11.3.1
+  dio: ^5.7.0
+  json_annotation: ^4.9.0
+  freezed_annotation: ^2.4.4
+  riverpod: ^2.6.1
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  json_serializable: ^6.8.0
+  freezed: ^2.5.7
+  riverpod_generator: ^2.6.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/images/
+    - assets/icons/
