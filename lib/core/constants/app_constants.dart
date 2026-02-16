@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   static const String appName = '轻氧天气';
-  static const String appVersion = '1.2.1';
+  static const String appVersion = '2.0.0';
 
   static const Duration apiTimeout = Duration(seconds: 15);
   static const Duration cacheValidDuration = Duration(minutes: 30);
