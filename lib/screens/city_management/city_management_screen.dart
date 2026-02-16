@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/weather_models.dart';
 import '../../providers/city_provider.dart';
 import '../../providers/weather_provider.dart';
-import '../../services/location_service.dart';
 
 class CityManagementScreen extends ConsumerStatefulWidget {
   const CityManagementScreen({super.key});
