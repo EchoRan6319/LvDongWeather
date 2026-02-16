@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
@@ -13,9 +14,7 @@ class SettingsScreen extends ConsumerWidget {
     final appSettings = ref.watch(settingsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-      ),
+      appBar: AppBar(title: const Text('设置')),
       body: ListView(
         children: [
           _buildSectionHeader(context, '外观'),
@@ -37,9 +36,9 @@ class SettingsScreen extends ConsumerWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -190,7 +189,11 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showThemeModeDialog(BuildContext context, WidgetRef ref, ThemeSettings settings) {
+  void _showThemeModeDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeSettings settings,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -215,7 +218,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showColorPickerDialog(BuildContext context, WidgetRef ref, ThemeSettings settings) {
+  void _showColorPickerDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeSettings settings,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -228,7 +235,8 @@ class SettingsScreen extends ConsumerWidget {
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             children: AppTheme.presetSeedColors.map((color) {
-              final isSelected = settings.seedColor?.toARGB32() == color.toARGB32();
+              final isSelected =
+                  settings.seedColor?.toARGB32() == color.toARGB32();
               return InkWell(
                 onTap: () {
                   ref.read(themeProvider.notifier).setSeedColor(color);
@@ -250,7 +258,8 @@ class SettingsScreen extends ConsumerWidget {
                   child: isSelected
                       ? Icon(
                           Icons.check,
-                          color: ThemeData.estimateBrightnessForColor(color) ==
+                          color:
+                              ThemeData.estimateBrightnessForColor(color) ==
                                   Brightness.dark
                               ? Colors.white
                               : Colors.black,
@@ -278,9 +287,13 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showRefreshIntervalDialog(BuildContext context, WidgetRef ref, AppSettings settings) {
+  void _showRefreshIntervalDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
     final intervals = [15, 30, 60, 120];
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -305,7 +318,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showTemperatureUnitDialog(BuildContext context, WidgetRef ref, AppSettings settings) {
+  void _showTemperatureUnitDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -365,6 +382,20 @@ class SettingsScreen extends ConsumerWidget {
         const Text('使用 Material You Design 设计语言'),
         const SizedBox(height: 8),
         const Text('数据来源：和风天气、彩云天气'),
+        const SizedBox(height: 16),
+        InkWell(
+          onTap: () => launchUrl(
+            Uri.parse('https://github.com/EchoRan/LvDongWeather'),
+            mode: LaunchMode.externalApplication,
+          ),
+          child: Text(
+            'https://github.com/EchoRan/LvDongWeather',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
       ],
     );
   }
