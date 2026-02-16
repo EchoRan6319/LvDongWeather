@@ -1,4 +1,4 @@
-# 律动天气 (LVDong Weather)
+# 律动天气 (LvDong Weather)
 
 一款使用 Flutter 和 Material You Design 构建的现代化 Android 天气应用。
 
@@ -43,7 +43,7 @@
 
 | 分类 | 技术 |
 |------|------|
-| 框架 | Flutter 3.11+ |
+| 框架 | Flutter 3.35.7 |
 | 状态管理 | Riverpod 2.6+ |
 | 网络请求 | Dio |
 | 数据模型 | Freezed + JSON Serializable |
