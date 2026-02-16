@@ -13,9 +13,13 @@ class WeatherAlertCard extends StatelessWidget {
     final alertColor = _getAlertColor(alerts.first.level);
     final textColor = _getAlertTextColor(alerts.first.level);
 
-    return Card(
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: alertColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
       clipBehavior: Clip.antiAlias,
-      color: alertColor,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
@@ -88,58 +92,57 @@ class _AlertItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       color: parentColor,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Divider(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getLevelColor(),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    alert.level,
-                    style: TextStyle(
-                      color: _getLevelTextColor(),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(height: 16),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getLevelColor(),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  alert.level,
+                  style: TextStyle(
+                    color: _getLevelTextColor(),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    alert.typeName,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: _getAlertTextColor(),
-                        ),
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  alert.typeName,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: _getAlertTextColor(),
+                      ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              alert.text,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: _getAlertTextColor().withValues(alpha: 0.9),
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '发布时间: ${alert.pubTime}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: _getAlertTextColor().withValues(alpha: 0.7),
-                    fontSize: 11,
-                  ),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            alert.text,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _getAlertTextColor().withValues(alpha: 0.9),
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '发布时间: ${alert.pubTime}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: _getAlertTextColor().withValues(alpha: 0.7),
+                  fontSize: 11,
+                ),
+          ),
+        ],
       ),
     );
   }
