@@ -554,17 +554,18 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
     final cities = ref.watch(cityManagerProvider);
     final defaultCity = ref.watch(defaultCityProvider);
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (context, scrollController) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
+    return AnimatedPadding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      duration: const Duration(milliseconds: 100),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
             children: [
               Container(
                 width: 40,
@@ -624,9 +625,9 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                     : _buildCityList(cities, defaultCity, scrollController),
               ),
             ],
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

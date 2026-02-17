@@ -419,19 +419,10 @@ class SettingsScreen extends ConsumerWidget {
     showAboutDialog(
       context: context,
       applicationName: '轻氧天气',
-      applicationVersion: '2.0',
-      applicationIcon: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(
-          Icons.wb_cloudy,
-          size: 32,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
+      applicationVersion: '2.2',
+      applicationIcon: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset('assets/icons/app_icon.png', width: 64, height: 64),
       ),
       children: [
         const Text('一款简洁美观的天气应用'),
@@ -442,11 +433,11 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         InkWell(
           onTap: () => launchUrl(
-            Uri.parse('https://github.com/EchoRan/LvDongWeather'),
+            Uri.parse('https://github.com/EchoRan/PureWeather'),
             mode: LaunchMode.externalApplication,
           ),
           child: Text(
-            'https://github.com/EchoRan/LvDongWeather',
+            'https://github.com/EchoRan/PureWeather',
             style: TextStyle(
               color: Theme.of(context).colorScheme.primary,
               decoration: TextDecoration.underline,
