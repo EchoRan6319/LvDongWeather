@@ -20,6 +20,8 @@ class WeatherCode {
     104: '阴',
     150: '晴',
     151: '多云',
+    152: '少云',
+    153: '晴间多云',
     300: '阵雨',
     301: '强阵雨',
     302: '雷阵雨',
@@ -40,6 +42,8 @@ class WeatherCode {
     317: '暴雨到大暴雨',
     318: '大暴雨到特大暴雨',
     399: '雨',
+    350: '阵雨',
+    351: '强阵雨',
     400: '小雪',
     401: '中雪',
     402: '大雪',
@@ -51,6 +55,8 @@ class WeatherCode {
     408: '小到中雪',
     409: '中到大雪',
     410: '大到暴雪',
+    456: '阵雨夹雪',
+    457: '阵雪',
     499: '雪',
     500: '薄雾',
     501: '雾',
@@ -78,13 +84,18 @@ class WeatherCode {
   static IconData getWeatherIcon(int code, {bool isNight = false}) {
     if (code == 100 || code == 150) {
       return isNight ? Icons.nightlight_round : Icons.wb_sunny;
-    } else if (code == 101 || code == 102 || code == 103 || code == 151) {
+    } else if (code == 101 ||
+        code == 102 ||
+        code == 103 ||
+        code == 151 ||
+        code == 152 ||
+        code == 153) {
       return isNight ? Icons.nights_stay : Icons.wb_cloudy;
     } else if (code == 104) {
       return Icons.cloud;
-    } else if (code >= 300 && code <= 399) {
+    } else if ((code >= 300 && code <= 399) || code == 350 || code == 351) {
       return Icons.water_drop;
-    } else if (code >= 400 && code <= 499) {
+    } else if ((code >= 400 && code <= 499) || code == 456 || code == 457) {
       return Icons.ac_unit;
     } else if (code >= 500 && code <= 515) {
       return Icons.blur_on;
