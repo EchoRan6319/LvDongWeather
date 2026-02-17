@@ -21,211 +21,180 @@ class SettingsScreen extends ConsumerWidget {
     final appSettings = ref.watch(settingsProvider);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                '设置',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      appBar: AppBar(title: const Text('设置')),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        children: [
+          _SettingsSection(
+            title: '个性化',
+            icon: Icons.palette_outlined,
+            children: [
+              _SettingsTile(
+                icon: Icons.brightness_6_outlined,
+                title: '主题模式',
+                subtitle: _getThemeModeName(themeSettings.themeMode),
+                onTap: () => _showThemeModeDialog(context, ref, themeSettings),
               ),
-              titlePadding: const EdgeInsetsDirectional.only(
-                start: 16,
-                bottom: 16,
+              _SettingsTile(
+                icon: Icons.color_lens_outlined,
+                title: '主题颜色',
+                subtitle: themeSettings.useDynamicColor ? '跟随壁纸' : '自定义颜色',
+                trailing: _ColorPreview(
+                  color:
+                      themeSettings.seedColor ??
+                      AppTheme.presetSeedColors.first,
+                ),
+                onTap: () =>
+                    _showColorPickerDialog(context, ref, themeSettings),
               ),
-            ),
+              _SettingsSwitch(
+                icon: Icons.wallpaper_outlined,
+                title: '动态取色',
+                subtitle: '根据壁纸自动生成主题色',
+                value: themeSettings.useDynamicColor,
+                onChanged: (value) {
+                  ref.read(themeProvider.notifier).setUseDynamicColor(value);
+                },
+              ),
+            ],
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _SettingsSection(
-                  title: '个性化',
-                  icon: Icons.palette_outlined,
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.brightness_6_outlined,
-                      title: '主题模式',
-                      subtitle: _getThemeModeName(themeSettings.themeMode),
-                      onTap: () =>
-                          _showThemeModeDialog(context, ref, themeSettings),
-                    ),
-                    _SettingsTile(
-                      icon: Icons.color_lens_outlined,
-                      title: '主题颜色',
-                      subtitle: themeSettings.useDynamicColor
-                          ? '跟随壁纸'
-                          : '自定义颜色',
-                      trailing: _ColorPreview(
-                        color:
-                            themeSettings.seedColor ??
-                            AppTheme.presetSeedColors.first,
-                      ),
-                      onTap: () =>
-                          _showColorPickerDialog(context, ref, themeSettings),
-                    ),
-                    _SettingsSwitch(
-                      icon: Icons.wallpaper_outlined,
-                      title: '动态取色',
-                      subtitle: '根据壁纸自动生成主题色',
-                      value: themeSettings.useDynamicColor,
-                      onChanged: (value) {
-                        ref
-                            .read(themeProvider.notifier)
-                            .setUseDynamicColor(value);
-                      },
-                    ),
-                  ],
-                ),
-                _SettingsSection(
-                  title: '通知',
-                  icon: Icons.notifications_outlined,
-                  children: [
-                    _SettingsSwitch(
-                      icon: Icons.warning_amber_outlined,
-                      title: '天气预警通知',
-                      subtitle: '接收极端天气预警推送',
-                      value: appSettings.notificationsEnabled,
-                      onChanged: (value) async {
-                        if (value) {
-                          final hasPermission =
-                              await notificationServiceProvider
-                                  .requestNotificationPermission();
-                          if (!hasPermission) {
-                            if (context.mounted) {
-                              _showPermissionDeniedDialog(context);
-                            }
-                            return;
-                          }
-                        }
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setNotificationsEnabled(value);
-                      },
-                    ),
-                    _SettingsTile(
-                      icon: Icons.schedule_outlined,
-                      title: '定时播报',
-                      subtitle: '设置每日定时推送天气信息',
-                      onTap: () => ScheduledBroadcastScreen.show(context, ref),
-                    ),
-                  ],
-                ),
-                _SettingsSection(
-                  title: '显示',
-                  icon: Icons.visibility_outlined,
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.device_thermostat_outlined,
-                      title: '温度单位',
-                      subtitle: appSettings.temperatureUnit == 'celsius'
-                          ? '摄氏度 (°C)'
-                          : '华氏度 (°F)',
-                      onTap: () =>
-                          _showTemperatureUnitDialog(context, ref, appSettings),
-                    ),
-                    _SettingsTile(
-                      icon: Icons.location_on_outlined,
-                      title: '位置显示精度',
-                      subtitle:
-                          appSettings.locationAccuracyLevel ==
-                              LocationAccuracyLevel.street
-                          ? '街道级别'
-                          : '区县级别',
-                      onTap: () => _showLocationAccuracyDialog(
-                        context,
-                        ref,
-                        appSettings,
-                      ),
-                    ),
-                  ],
-                ),
-                _SettingsSection(
-                  title: '数据',
-                  icon: Icons.sync_outlined,
-                  children: [
-                    _SettingsSwitch(
-                      icon: Icons.autorenew_outlined,
-                      title: '自动刷新',
-                      subtitle: '每 ${appSettings.refreshInterval} 分钟自动更新',
-                      value: appSettings.autoRefreshEnabled,
-                      onChanged: (value) {
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setAutoRefreshEnabled(value);
-                      },
-                    ),
-                    _SettingsTile(
-                      icon: Icons.timer_outlined,
-                      title: '刷新间隔',
-                      subtitle: '${appSettings.refreshInterval} 分钟',
-                      onTap: () =>
-                          _showRefreshIntervalDialog(context, ref, appSettings),
-                    ),
-                  ],
-                ),
-                _SettingsSection(
-                  title: '高级',
-                  icon: Icons.tune_outlined,
-                  children: [
-                    _SettingsSwitch(
-                      icon: Icons.swipe_outlined,
-                      title: '预测式返回手势',
-                      subtitle: '返回时显示预览动画（Android 14+）',
-                      value: appSettings.predictiveBackEnabled,
-                      onChanged: (value) {
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setPredictiveBackEnabled(value);
-                      },
-                    ),
-                  ],
-                ),
-                _SettingsSection(
-                  title: '关于',
-                  icon: Icons.info_outline,
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.apps_outlined,
-                      title: '关于轻氧天气',
-                      onTap: () => _showAboutDialog(context),
-                    ),
-                    _SettingsTile(
-                      icon: Icons.privacy_tip_outlined,
-                      title: '隐私政策',
-                      onTap: () {},
-                    ),
-                    _SettingsTile(
-                      icon: Icons.description_outlined,
-                      title: '用户协议',
-                      onTap: () {},
-                    ),
-                    _SettingsTile(
-                      icon: Icons.system_update_outlined,
-                      title: '检查更新',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('已是最新版本'),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ]),
-            ),
+          _SettingsSection(
+            title: '通知',
+            icon: Icons.notifications_outlined,
+            children: [
+              _SettingsSwitch(
+                icon: Icons.warning_amber_outlined,
+                title: '天气预警通知',
+                subtitle: '接收极端天气预警推送',
+                value: appSettings.notificationsEnabled,
+                onChanged: (value) async {
+                  if (value) {
+                    final hasPermission = await notificationServiceProvider
+                        .requestNotificationPermission();
+                    if (!hasPermission) {
+                      if (context.mounted) {
+                        _showPermissionDeniedDialog(context);
+                      }
+                      return;
+                    }
+                  }
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setNotificationsEnabled(value);
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.schedule_outlined,
+                title: '定时播报',
+                subtitle: '设置每日定时推送天气信息',
+                onTap: () => ScheduledBroadcastScreen.show(context, ref),
+              ),
+            ],
           ),
+          _SettingsSection(
+            title: '显示',
+            icon: Icons.visibility_outlined,
+            children: [
+              _SettingsTile(
+                icon: Icons.device_thermostat_outlined,
+                title: '温度单位',
+                subtitle: appSettings.temperatureUnit == 'celsius'
+                    ? '摄氏度 (°C)'
+                    : '华氏度 (°F)',
+                onTap: () =>
+                    _showTemperatureUnitDialog(context, ref, appSettings),
+              ),
+              _SettingsTile(
+                icon: Icons.location_on_outlined,
+                title: '位置显示精度',
+                subtitle:
+                    appSettings.locationAccuracyLevel ==
+                        LocationAccuracyLevel.street
+                    ? '街道级别'
+                    : '区县级别',
+                onTap: () =>
+                    _showLocationAccuracyDialog(context, ref, appSettings),
+              ),
+            ],
+          ),
+          _SettingsSection(
+            title: '数据',
+            icon: Icons.sync_outlined,
+            children: [
+              _SettingsSwitch(
+                icon: Icons.autorenew_outlined,
+                title: '自动刷新',
+                subtitle: '每 ${appSettings.refreshInterval} 分钟自动更新',
+                value: appSettings.autoRefreshEnabled,
+                onChanged: (value) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setAutoRefreshEnabled(value);
+                },
+              ),
+              _SettingsTile(
+                icon: Icons.timer_outlined,
+                title: '刷新间隔',
+                subtitle: '${appSettings.refreshInterval} 分钟',
+                onTap: () =>
+                    _showRefreshIntervalDialog(context, ref, appSettings),
+              ),
+            ],
+          ),
+          _SettingsSection(
+            title: '高级',
+            icon: Icons.tune_outlined,
+            children: [
+              _SettingsSwitch(
+                icon: Icons.swipe_outlined,
+                title: '预测式返回手势',
+                subtitle: '返回时显示预览动画（Android 14+）',
+                value: appSettings.predictiveBackEnabled,
+                onChanged: (value) {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setPredictiveBackEnabled(value);
+                },
+              ),
+            ],
+          ),
+          _SettingsSection(
+            title: '关于',
+            icon: Icons.info_outline,
+            children: [
+              _SettingsTile(
+                icon: Icons.apps_outlined,
+                title: '关于轻氧天气',
+                onTap: () => _showAboutDialog(context),
+              ),
+              _SettingsTile(
+                icon: Icons.privacy_tip_outlined,
+                title: '隐私政策',
+                onTap: () {},
+              ),
+              _SettingsTile(
+                icon: Icons.description_outlined,
+                title: '用户协议',
+                onTap: () {},
+              ),
+              _SettingsTile(
+                icon: Icons.system_update_outlined,
+                title: '检查更新',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('已是最新版本'),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
