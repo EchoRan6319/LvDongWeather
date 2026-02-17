@@ -17,11 +17,7 @@ class WeatherScreen extends ConsumerStatefulWidget {
   ConsumerState<WeatherScreen> createState() => _WeatherScreenState();
 }
 
-class _WeatherScreenState extends ConsumerState<WeatherScreen>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
+class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   @override
   void initState() {
     super.initState();
@@ -43,7 +39,6 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final weatherState = ref.watch(weatherProvider);
     final defaultCity = ref.watch(defaultCityProvider);
 
@@ -66,9 +61,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
                 background: _buildCurrentWeather(weatherState, defaultCity),
               ),
             ),
-            SliverToBoxAdapter(
-              child: _buildContent(weatherState),
-            ),
+            SliverToBoxAdapter(child: _buildContent(weatherState)),
           ],
         ),
       ),
@@ -106,7 +99,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
           end: Alignment.bottomCenter,
           colors: isNight
               ? [
-                  Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                   Theme.of(context).colorScheme.surface,
                 ]
               : [
@@ -124,8 +119,8 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
               Text(
                 location?.name ?? '未知位置',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -135,9 +130,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
                   Text(
                     weather.current.temp,
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.w300,
-                          fontSize: 72,
-                        ),
+                      fontWeight: FontWeight.w300,
+                      fontSize: 72,
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
@@ -201,14 +196,14 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -239,15 +234,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
             Text(
               '请先添加城市',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               '点击底部导航栏"城市"添加',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -304,10 +299,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '降雨预测',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('降雨预测', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 8),
@@ -328,10 +320,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '详细信息',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('详细信息', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -380,32 +369,34 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen>
     );
   }
 
-  Widget _buildDetailItem(IconData icon, String label, String value, String? subtitle) {
+  Widget _buildDetailItem(
+    IconData icon,
+    String label,
+    String value,
+    String? subtitle,
+  ) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+        Icon(icon, color: Theme.of(context).colorScheme.primary),
         const SizedBox(height: 8),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
         if (subtitle != null)
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
       ],
     );
