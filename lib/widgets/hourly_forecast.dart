@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/weather_models.dart';
 import '../core/constants/app_constants.dart';
 
 class HourlyForecast extends StatelessWidget {
   final List<HourlyWeather> hourly;
+  final String? sunrise;
+  final String? sunset;
 
-  const HourlyForecast({super.key, required this.hourly});
+  const HourlyForecast({
+    super.key,
+    required this.hourly,
+    this.sunrise,
+    this.sunset,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,12 +26,12 @@ class HourlyForecast extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             _buildHourlyList(context, filteredHourly, now),
           ],
         ),
@@ -55,6 +63,10 @@ class HourlyForecast extends StatelessWidget {
     List<HourlyWeather> hourly,
     DateTime now,
   ) {
+    final hasAnyPrecipitation = hourly.any(
+      (h) => h.pop != '0' && h.pop.isNotEmpty,
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
@@ -65,7 +77,7 @@ class HourlyForecast extends StatelessWidget {
             targetVisibleItems;
 
         return SizedBox(
-          height: 120,
+          height: hasAnyPrecipitation ? 120 : 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: hourly.length,
@@ -78,7 +90,13 @@ class HourlyForecast extends StatelessWidget {
                 ),
                 child: SizedBox(
                   width: itemWidth,
-                  child: _HourlyItem(weather: hourly[index], now: now),
+                  child: _HourlyItem(
+                    weather: hourly[index],
+                    now: now,
+                    sunrise: sunrise,
+                    sunset: sunset,
+                    showPrecipitation: hasAnyPrecipitation,
+                  ),
                 ),
               );
             },
@@ -134,17 +152,52 @@ class HourlyForecast extends StatelessWidget {
 class _HourlyItem extends StatelessWidget {
   final HourlyWeather weather;
   final DateTime now;
+  final String? sunrise;
+  final String? sunset;
+  final bool showPrecipitation;
 
-  const _HourlyItem({required this.weather, required this.now});
+  const _HourlyItem({
+    required this.weather,
+    required this.now,
+    this.sunrise,
+    this.sunset,
+    this.showPrecipitation = true,
+  });
+
+  bool _isNightTime(DateTime time) {
+    if (sunrise != null &&
+        sunset != null &&
+        sunrise!.isNotEmpty &&
+        sunset!.isNotEmpty) {
+      final sunriseParts = sunrise!.split(':');
+      final sunsetParts = sunset!.split(':');
+
+      if (sunriseParts.length >= 2 && sunsetParts.length >= 2) {
+        final sunriseHour = int.tryParse(sunriseParts[0]) ?? 6;
+        final sunriseMinute = int.tryParse(sunriseParts[1]) ?? 0;
+        final sunsetHour = int.tryParse(sunsetParts[0]) ?? 18;
+        final sunsetMinute = int.tryParse(sunsetParts[1]) ?? 0;
+
+        final sunriseMinutes = sunriseHour * 60 + sunriseMinute;
+        final sunsetMinutes = sunsetHour * 60 + sunsetMinute;
+        final currentMinutes = time.hour * 60 + time.minute;
+
+        return currentMinutes < sunriseMinutes ||
+            currentMinutes >= sunsetMinutes;
+      }
+    }
+
+    return time.hour >= 18 || time.hour < 6;
+  }
 
   @override
   Widget build(BuildContext context) {
     final time = DateTime.tryParse(weather.fxTime);
     final localTime = time?.toLocal();
-    final hour = localTime?.hour ?? 0;
-    final isNight = hour >= 22 || hour < 6;
+    final isNight = localTime != null ? _isNightTime(localTime) : false;
     final iconCode = int.tryParse(weather.icon) ?? 100;
-    final hasPrecipitation = weather.pop != '0' && weather.pop.isNotEmpty;
+    final hasPrecipitation =
+        showPrecipitation && weather.pop != '0' && weather.pop.isNotEmpty;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -200,22 +253,25 @@ class _HourlyItem extends StatelessWidget {
 
   Widget _buildPrecipitation(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.water_drop,
-          size: 10,
-          color: Theme.of(context).colorScheme.tertiary,
-        ),
-        const SizedBox(width: 1),
-        Text(
-          '${weather.pop}%',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.tertiary,
-            fontSize: 9,
-          ),
-        ),
-      ],
-    );
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.water_drop,
+              size: 10,
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
+            const SizedBox(width: 1),
+            Text(
+              '${weather.pop}%',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.tertiary,
+                fontSize: 9,
+              ),
+            ),
+          ],
+        )
+        .animate()
+        .fadeIn(duration: 400.ms, curve: Curves.easeInOut)
+        .slideY(begin: 0.3, end: 0, duration: 400.ms, curve: Curves.easeInOut);
   }
 }

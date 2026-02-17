@@ -115,7 +115,12 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       return _buildEmptyState();
     }
 
-    final isNight = _isNightTime(weather.current.obsTime);
+    final todayDaily = weather.daily.isNotEmpty ? weather.daily.first : null;
+    final isNight = _isNightTime(
+      weather.current.obsTime,
+      todayDaily?.sunrise,
+      todayDaily?.sunset,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -294,28 +299,48 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 6, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (weather.hasAlerts) ...[
             WeatherAlertCard(alerts: weather.alerts),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ],
           if (state.minuteRain != null && state.minuteRain!.willRain) ...[
             _buildRainPrediction(state.minuteRain!),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ],
-          HourlyForecast(hourly: weather.hourly),
-          const SizedBox(height: 8),
-          DailyForecast(daily: weather.daily, currentWeather: weather.current),
-          const SizedBox(height: 8),
+          HourlyForecast(
+            hourly: weather.hourly,
+            sunrise: weather.daily.isNotEmpty
+                ? weather.daily.first.sunrise
+                : null,
+            sunset: weather.daily.isNotEmpty
+                ? weather.daily.first.sunset
+                : null,
+          ),
+          const SizedBox(height: 6),
+          DailyForecast(
+            daily: weather.daily,
+            currentWeather: weather.current,
+            sunrise: weather.daily.isNotEmpty
+                ? weather.daily.first.sunrise
+                : null,
+            sunset: weather.daily.isNotEmpty
+                ? weather.daily.first.sunset
+                : null,
+          ),
+          const SizedBox(height: 6),
           if (state.airQuality != null) ...[
             AirQualityCard(airQuality: state.airQuality!),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
           ],
-          _buildWeatherDetails(weather.current),
-          const SizedBox(height: 8),
+          _buildWeatherDetails(
+            weather.current,
+            weather.daily.isNotEmpty ? weather.daily.first : null,
+          ),
+          const SizedBox(height: 6),
         ],
       ),
     );
@@ -349,10 +374,13 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
-  Widget _buildWeatherDetails(CurrentWeather current) {
+  Widget _buildWeatherDetails(
+    CurrentWeather current,
+    DailyWeather? todayDaily,
+  ) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -372,7 +400,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -391,9 +419,19 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                     null,
                   ),
                 ),
+                Expanded(
+                  child: todayDaily != null
+                      ? _buildDetailItem(
+                          Icons.wb_twilight,
+                          '日出',
+                          todayDaily.sunrise,
+                          null,
+                        )
+                      : const SizedBox(),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -411,6 +449,16 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                     '${current.pressure} hPa',
                     null,
                   ),
+                ),
+                Expanded(
+                  child: todayDaily != null
+                      ? _buildDetailItem(
+                          Icons.nights_stay,
+                          '日落',
+                          todayDaily.sunset,
+                          null,
+                        )
+                      : const SizedBox(),
                 ),
               ],
             ),
@@ -453,13 +501,44 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     );
   }
 
-  bool _isNightTime(String obsTime) {
+  bool _isNightTime(String obsTime, String? sunrise, String? sunset) {
     try {
-      final time = DateTime.parse(obsTime);
-      return time.hour < 6 || time.hour > 18;
+      final now = DateTime.parse(obsTime);
+
+      if (sunrise != null &&
+          sunset != null &&
+          sunrise.isNotEmpty &&
+          sunset.isNotEmpty) {
+        final sunriseTime = _parseTime(sunrise, now);
+        final sunsetTime = _parseTime(sunset, now);
+
+        if (sunriseTime != null && sunsetTime != null) {
+          return now.isBefore(sunriseTime) || now.isAfter(sunsetTime);
+        }
+      }
+
+      return now.hour < 6 || now.hour >= 18;
     } catch (_) {
       return false;
     }
+  }
+
+  DateTime? _parseTime(String time, DateTime baseDate) {
+    try {
+      final parts = time.split(':');
+      if (parts.length >= 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return DateTime(
+          baseDate.year,
+          baseDate.month,
+          baseDate.day,
+          hour,
+          minute,
+        );
+      }
+    } catch (_) {}
+    return null;
   }
 }
 

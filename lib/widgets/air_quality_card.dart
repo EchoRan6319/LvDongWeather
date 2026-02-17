@@ -11,7 +11,7 @@ class AirQualityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -31,7 +31,7 @@ class AirQualityCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 _buildAqiCircle(context),
@@ -117,18 +117,16 @@ class AirQualityCard extends StatelessWidget {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: pollutants
               .take(3)
-              .map((p) => _buildPollutantItem(context, p))
+              .map((p) => Expanded(child: _buildPollutantItem(context, p)))
               .toList(),
         ),
         const SizedBox(height: 12),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: pollutants
               .skip(3)
-              .map((p) => _buildPollutantItem(context, p))
+              .map((p) => Expanded(child: _buildPollutantItem(context, p)))
               .toList(),
         ),
       ],

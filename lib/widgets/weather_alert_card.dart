@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../models/weather_models.dart';
 
 class WeatherAlertCard extends StatelessWidget {
@@ -14,42 +16,56 @@ class WeatherAlertCard extends StatelessWidget {
     final textColor = _getAlertTextColor(alerts.first.level);
 
     return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: alertColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          childrenPadding: EdgeInsets.zero,
-          leading: Icon(
-            Icons.warning_amber_rounded,
-            color: textColor,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: alertColor,
+            borderRadius: BorderRadius.circular(12),
           ),
-          title: Text(
-            alerts.first.title,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.w500,
-              fontSize: 15,
+          clipBehavior: Clip.antiAlias,
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 4,
+              ),
+              childrenPadding: EdgeInsets.zero,
+              leading: Icon(Icons.warning_amber_rounded, color: textColor),
+              title: Text(
+                alerts.first.title,
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                ),
+              ),
+              subtitle: Text(
+                '${alerts.length}条预警',
+                style: TextStyle(
+                  color: textColor.withValues(alpha: 0.8),
+                  fontSize: 12,
+                ),
+              ),
+              collapsedIconColor: textColor,
+              iconColor: textColor,
+              children: alerts
+                  .map(
+                    (alert) =>
+                        _AlertItem(alert: alert, parentColor: alertColor),
+                  )
+                  .toList(),
             ),
           ),
-          subtitle: Text(
-            '${alerts.length}条预警',
-            style: TextStyle(
-              color: textColor.withValues(alpha: 0.8),
-              fontSize: 12,
-            ),
-          ),
-          collapsedIconColor: textColor,
-          iconColor: textColor,
-          children: alerts.map((alert) => _AlertItem(alert: alert, parentColor: alertColor)).toList(),
-        ),
-      ),
-    );
+        )
+        .animate()
+        .fadeIn(duration: 400.ms, curve: Curves.easeInOut)
+        .slideY(begin: -0.2, end: 0, duration: 400.ms, curve: Curves.easeInOut)
+        .scale(
+          begin: const Offset(0.95, 0.95),
+          end: const Offset(1, 1),
+          duration: 400.ms,
+          curve: Curves.easeInOut,
+        );
   }
 
   Color _getAlertColor(String level) {
@@ -120,9 +136,9 @@ class _AlertItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   alert.typeName,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: _getAlertTextColor(),
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(color: _getAlertTextColor()),
                 ),
               ),
             ],
@@ -131,20 +147,52 @@ class _AlertItem extends StatelessWidget {
           Text(
             alert.text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: _getAlertTextColor().withValues(alpha: 0.9),
-                ),
+              color: _getAlertTextColor().withValues(alpha: 0.9),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
-            '发布时间: ${alert.pubTime}',
+            '发布时间: ${_formatPubTime(alert.pubTime)}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: _getAlertTextColor().withValues(alpha: 0.7),
-                  fontSize: 11,
-                ),
+              color: _getAlertTextColor().withValues(alpha: 0.7),
+              fontSize: 11,
+            ),
           ),
         ],
       ),
     );
+  }
+
+  String _formatPubTime(String pubTime) {
+    try {
+      final dateTime = DateTime.parse(pubTime);
+      final localTime = dateTime.toLocal();
+      final now = DateTime.now();
+
+      final today = DateTime(now.year, now.month, now.day);
+      final alertDate = DateTime(
+        localTime.year,
+        localTime.month,
+        localTime.day,
+      );
+      final difference = today.difference(alertDate).inDays;
+
+      final timeFormat = DateFormat('HH:mm');
+      final timeStr = timeFormat.format(localTime);
+
+      if (difference == 0) {
+        return '今天 $timeStr';
+      } else if (difference == 1) {
+        return '昨天 $timeStr';
+      } else if (difference == 2) {
+        return '前天 $timeStr';
+      } else {
+        final dateFormat = DateFormat('MM-dd HH:mm');
+        return dateFormat.format(localTime);
+      }
+    } catch (e) {
+      return pubTime;
+    }
   }
 
   Color _getLevelColor() {
