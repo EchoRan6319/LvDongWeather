@@ -8,7 +8,7 @@
 
 ### 应用图标
 
-![轻氧天气应用图标](assets/icons/app_icon.png)
+![轻氧天气应用图标](assets/icons/app_icon.svg)
 
 ### 应用界面
 
@@ -53,14 +53,18 @@
 
 | 分类 | 技术 |
 |------|------|
-| 框架 | Flutter 3.41.3 |
+| 框架 | Flutter 3.41.3+ |
 | 状态管理 | Riverpod 2.6+ |
 | 网络请求 | Dio |
 | 数据模型 | Freezed + JSON Serializable |
 | 本地存储 | SharedPreferences |
-| 定位服务 | Geolocator |
+| 定位服务 | Geolocator + Geocoding |
 | 动画 | Flutter Animate |
 | 图表 | FL Chart |
+| 动态主题 | Dynamic Color |
+| 通知 | Flutter Local Notifications |
+| 权限 | Permission Handler |
+| 工具 | Freezed, Build Runner |
 
 ## 项目结构
 
@@ -68,30 +72,50 @@
 lib/
 ├── core/                    # 核心配置
 │   ├── constants/           # 常量配置（API、版本等）
+│   │   ├── api_config.dart  # API 配置
+│   │   └── app_constants.dart # 应用常量
 │   └── theme/              # 主题配置
+│       └── app_theme.dart   # 应用主题
 ├── models/                 # 数据模型
-│   └── weather_models.dart # 天气数据模型（Freezed）
+│   ├── weather_models.dart     # 天气数据模型（Freezed）
+│   ├── weather_models.freezed.dart # Freezed 生成文件
+│   └── weather_models.g.dart    # JSON 序列化生成文件
 ├── providers/              # 状态管理
-│   ├── city_provider.dart  # 城市管理
-│   ├── weather_provider.dart# 天气数据
-│   ├── settings_provider.dart# 设置
-│   └── theme_provider.dart # 主题管理
+│   ├── city_provider.dart         # 城市管理
+│   ├── weather_provider.dart      # 天气数据
+│   ├── settings_provider.dart     # 设置
+│   ├── theme_provider.dart        # 主题管理
+│   ├── scheduled_broadcast_provider.dart # 定时播报
+│   └── providers.dart             # 提供者导出文件
 ├── screens/                # 页面
-│   ├── main_screen.dart    # 主页面
-│   ├── weather/            # 天气详情页
-│   ├── city_management/    # 城市管理页
-│   ├── settings/           # 设置页
-│   └── ai_assistant/       # AI 助手页
+│   ├── main_screen.dart            # 主页面
+│   ├── weather/                    # 天气详情页
+│   │   └── weather_screen.dart     # 天气详情
+│   ├── city_management/            # 城市管理页
+│   │   └── city_management_screen.dart # 城市管理
+│   ├── settings/                   # 设置页
+│   │   ├── settings_screen.dart    # 设置主页
+│   │   ├── card_order_screen.dart  # 卡片排序
+│   │   └── scheduled_broadcast_screen.dart # 定时播报设置
+│   └── ai_assistant/               # AI 助手页
+│       └── ai_assistant_screen.dart # AI 助手
 ├── services/               # API 服务
-│   ├── qweather_service.dart  # 和风天气 API
-│   ├── caiyun_service.dart    # 彩云天气 API
-│   ├── location_service.dart  # 高德地图定位
-│   └── deepseek_service.dart  # DeepSeek AI
-└── widgets/                # 通用组件
-    ├── daily_forecast.dart    # 七日预报
-    ├── hourly_forecast.dart   # 小时预报
-    ├── air_quality_card.dart  # 空气质量
-    └── weather_alert_card.dart# 天气预警
+│   ├── qweather_service.dart       # 和风天气 API
+│   ├── caiyun_service.dart         # 彩云天气 API
+│   ├── location_service.dart       # 高德地图定位
+│   ├── deepseek_service.dart       # DeepSeek AI
+│   ├── notification_service.dart   # 通知服务
+│   ├── scheduled_broadcast_service.dart # 定时播报服务
+│   └── services.dart               # 服务导出文件
+├── widgets/                # 通用组件
+│   ├── daily_forecast.dart         # 七日预报
+│   ├── hourly_forecast.dart        # 小时预报
+│   ├── air_quality_card.dart       # 空气质量
+│   ├── weather_alert_card.dart     # 天气预警
+│   ├── weather_card.dart           # 天气卡片
+│   ├── weather_indices_card.dart   # 生活指数
+│   └── app_icon.dart               # 应用图标组件
+└── main.dart                # 应用入口
 ```
 
 ## 配置说明
@@ -182,6 +206,8 @@ export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
 1. 请自行下载 `OPPO Sans 4.0` 字体文件。
 2. 在项目根目录下创建 `exfonts` 文件夹。
 3. 将下载的字体文件重命名为 `OPPO Sans 4.0.ttf` 并放入 `exfonts` 文件夹中。
+
+**注意**：根据 OPPO Sans 字体文件的开源许可要求，本项目无法将字体文件一并提供，字体下载地址：`https://www.coloros.com/article/A00000074/`
 
 如果不添加字体文件，构建调试版或正式版 APK 时可能会因缺少资源而报错。
 
