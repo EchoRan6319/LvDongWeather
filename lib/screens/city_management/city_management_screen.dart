@@ -263,7 +263,7 @@ class _CityManagementScreenState extends ConsumerState<CityManagementScreen> {
           onTap: () async {
             await ref.read(cityManagerProvider.notifier).setDefaultCity(city.id);
             await ref.read(weatherProvider.notifier).loadWeather(city);
-            if (mounted) {
+            if (context.mounted) {
               Navigator.of(context).popUntil((route) => route.isFirst);
             }
           },

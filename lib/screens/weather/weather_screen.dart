@@ -910,7 +910,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  error: (_, __) => const SizedBox(),
+                  error: (error, stackTrace) => const SizedBox(),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
@@ -936,7 +936,9 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                   .read(cityManagerProvider.notifier)
                   .setDefaultCity(city.id);
               await ref.read(weatherProvider.notifier).loadWeather(city);
-              Navigator.pop(context);
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
           ),
         );

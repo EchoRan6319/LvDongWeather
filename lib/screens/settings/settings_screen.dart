@@ -61,7 +61,7 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsSwitch(
                 icon: Icons.font_download_outlined,
                 title: '内置字体 (OPPO Sans)',
-                subtitle: '启用后可解决部分设备系统字体显示异常',
+                subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题',
                 value: themeSettings.useCustomFont,
                 onChanged: (value) {
                   ref.read(themeProvider.notifier).setUseCustomFont(value);

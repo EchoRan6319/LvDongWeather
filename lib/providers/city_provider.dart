@@ -134,7 +134,6 @@ class CityManager extends StateNotifier<List<Location>> {
   }
 
   Future<void> reorderCities(int oldIndex, int newIndex) async {
-    final locatedCityIndex = state.indexWhere((c) => c.isLocated);
 
     // If there is a located city, it must stay at index 0 for consistency
     // But we will allow reordering other cities.

@@ -57,7 +57,7 @@ class QWeatherService {
 
   Future<Location> searchLocationByCoords(double lat, double lon) async {
     try {
-      print('[QWeather] GET $_baseUrl/geo/reverse?location=$lon,$lat');
+      // print('[QWeather] GET $_baseUrl/geo/reverse?location=$lon,$lat');
       final response = await _dio.get(
         '$_baseUrl/geo/reverse',
         queryParameters: {
@@ -67,7 +67,7 @@ class QWeatherService {
       );
 
       final data = response.data;
-      print('[QWeather] Geo reverse response: $data');
+      // print('[QWeather] Geo reverse response: $data');
       
       if (data['code'] == '200' && data['location'] != null) {
         final locations = data['location'] as List;
@@ -95,8 +95,8 @@ class QWeatherService {
       }
       throw Exception(_getErrorMessage(errorCode));
     } on DioException catch (e) {
-      print('[QWeather] DioException: ${e.type} - ${e.message}');
-      print('[QWeather] Response: ${e.response?.data}');
+      // print('[QWeather] DioException: ${e.type} - ${e.message}');
+      // print('[QWeather] Response: ${e.response?.data}');
       String errorMsg;
       switch (e.type) {
         case DioExceptionType.connectionError:
@@ -129,7 +129,7 @@ class QWeatherService {
       }
       throw Exception(errorMsg);
     } catch (e) {
-      print('[QWeather] Unknown error: $e');
+      // print('[QWeather] Unknown error: $e');
       rethrow;
     }
   }
@@ -157,7 +157,7 @@ class QWeatherService {
 
   Future<CurrentWeather> getCurrentWeather(String locationId) async {
     try {
-      print('[QWeather] GET $_baseUrl/weather/now?location=$locationId');
+      // print('[QWeather] GET $_baseUrl/weather/now?location=$locationId');
       final response = await _dio.get(
         '$_baseUrl/weather/now',
         queryParameters: {
@@ -167,7 +167,7 @@ class QWeatherService {
       );
 
       final data = response.data;
-      print('[QWeather] Current Weather Response: $data');
+      // print('[QWeather] Current Weather Response: $data');
       
       if (data['code'] == '200' && data['now'] != null) {
         return CurrentWeather.fromJson(data['now']);
@@ -180,7 +180,7 @@ class QWeatherService {
 
   Future<List<HourlyWeather>> getHourlyWeather(String locationId) async {
     try {
-      print('[QWeather] GET $_baseUrl/weather/72h?location=$locationId');
+      // print('[QWeather] GET $_baseUrl/weather/72h?location=$locationId');
       final response = await _dio.get(
         '$_baseUrl/weather/72h',
         queryParameters: {
@@ -190,7 +190,7 @@ class QWeatherService {
       );
 
       final data = response.data;
-      print('[QWeather] Hourly Weather Response: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}...');
+      // print('[QWeather] Hourly Weather Response: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}...');
       
       if (data['code'] == '200' && data['hourly'] != null) {
         return (data['hourly'] as List)
@@ -205,7 +205,7 @@ class QWeatherService {
 
   Future<List<DailyWeather>> getDailyWeather(String locationId) async {
     try {
-      print('[QWeather] GET $_baseUrl/weather/7d?location=$locationId');
+      // print('[QWeather] GET $_baseUrl/weather/7d?location=$locationId');
       final response = await _dio.get(
         '$_baseUrl/weather/7d',
         queryParameters: {
@@ -215,12 +215,12 @@ class QWeatherService {
       );
 
       final data = response.data;
-      print('[QWeather] Daily Weather Response: $data');
+      // print('[QWeather] Daily Weather Response: $data');
       
       if (data['code'] == '200' && data['daily'] != null) {
         final dailyList = data['daily'] as List;
-        for (var day in dailyList) {
-          print('[QWeather] Daily: ${day['fxDate']} - textDay: ${day['textDay']}, textNight: ${day['textNight']}, tempMax: ${day['tempMax']}, tempMin: ${day['tempMin']}');
+        for (var _ in dailyList) {
+          // print('[QWeather] Daily: ${day['fxDate']} - textDay: ${day['textDay']}, textNight: ${day['textNight']}, tempMax: ${day['tempMax']}, tempMin: ${day['tempMin']}');
         }
         return dailyList.map((e) => DailyWeather.fromJson(e)).toList();
       }
@@ -307,7 +307,7 @@ class QWeatherService {
   }
 
   Future<WeatherData> getFullWeatherData(String locationId, Location location) async {
-    print('[QWeather] Getting full weather data for locationId: $locationId');
+    // print('[QWeather] Getting full weather data for locationId: $locationId');
     final results = await Future.wait([
       getCurrentWeather(locationId),
       getHourlyWeather(locationId),
