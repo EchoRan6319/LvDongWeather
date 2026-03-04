@@ -335,4 +335,4 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ## 许可证
 
-GNU General Public License v3.0
+MIT License
