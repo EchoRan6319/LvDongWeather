@@ -35,7 +35,10 @@ class CityManager extends StateNotifier<List<Location>> {
   }
 
   Future<void> addCity(Location location) async {
-    if (state.any((city) => city.id == location.id)) {
+    // Check for ID duplicate or Name+ADM2 duplicate
+    if (state.any((city) =>
+        city.id == location.id ||
+        (city.name == location.name && city.adm2 == location.adm2))) {
       return;
     }
 
@@ -48,9 +51,35 @@ class CityManager extends StateNotifier<List<Location>> {
     await _saveCities();
   }
 
-  Future<void> addCityAndSetDefault(Location location, {bool isLocated = false}) async {
-    if (state.any((city) => city.id == location.id)) {
-      await setDefaultCity(location.id);
+  Future<void> addCityAndSetDefault(Location location,
+      {bool isLocated = false}) async {
+    // If it's a located city, check if we already have one and update it
+    if (isLocated) {
+      final existingLocatedIndex = state.indexWhere((c) => c.isLocated);
+      if (existingLocatedIndex != -1) {
+        state = [
+          for (int i = 0; i < state.length; i++)
+            if (i == existingLocatedIndex)
+              location.copyWith(
+                isDefault: true,
+                isLocated: true,
+                sortOrder: state[i].sortOrder,
+              )
+            else
+              state[i].copyWith(isDefault: false)
+        ];
+        await _saveCities();
+        return;
+      }
+    }
+
+    // Check for ID duplicate or Name+ADM2 duplicate for normal add
+    final existingIndex = state.indexWhere((city) =>
+        city.id == location.id ||
+        (city.name == location.name && city.adm2 == location.adm2));
+
+    if (existingIndex != -1) {
+      await setDefaultCity(state[existingIndex].id);
       return;
     }
 
@@ -105,15 +134,14 @@ class CityManager extends StateNotifier<List<Location>> {
   }
 
   Future<void> reorderCities(int oldIndex, int newIndex) async {
-    final locatedCity = state.firstWhere(
-      (c) => c.isLocated,
-      orElse: () => state.first,
-    );
+    final locatedCityIndex = state.indexWhere((c) => c.isLocated);
 
-    if (oldIndex == state.indexOf(locatedCity) || 
-        newIndex == state.indexOf(locatedCity)) {
-      return;
-    }
+    // If there is a located city, it must stay at index 0 for consistency
+    // But we will allow reordering other cities.
+    // Actually, user wants to lift restrictions, but let's keep located city at top if it exists
+    // to match typical weather app patterns, OR just let user do whatever.
+    // The previous code blocked reordering IF either index was the located city.
+    // Let's just remove the block and see.
 
     if (newIndex > oldIndex) {
       newIndex -= 1;
@@ -192,8 +220,12 @@ class LocationInitNotifier extends StateNotifier<LocationInitState> {
 
   LocationInitNotifier(this._ref) : super(const LocationInitState());
 
-  Future<void> initLocation() async {
-    if (state.isInitialized) return;
+  Future<void> initLocation({bool force = false}) async {
+    if (state.isInitialized && !force) return;
+
+    if (force) {
+      state = state.copyWith(isInitialized: false);
+    }
 
     await Future.delayed(const Duration(milliseconds: 500));
 

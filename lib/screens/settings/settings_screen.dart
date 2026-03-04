@@ -1246,7 +1246,7 @@ class _SelectionTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: item.isSelected
             ? colorScheme.primaryContainer
@@ -1262,7 +1262,7 @@ class _SelectionTile extends StatelessWidget {
           onTap: item.onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Container(

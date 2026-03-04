@@ -770,18 +770,25 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
 
   Widget _buildSearchResults() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final location = _searchResults[index];
-        return ListTile(
-          leading: const Icon(Icons.location_on_outlined),
-          title: Text(location.name),
-          trailing: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              widget.onCitySelected(location);
-            },
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: const Icon(Icons.location_on_outlined),
+            title: Text(location.name),
+            subtitle: Text(
+              '${location.lat.toStringAsFixed(2)}, ${location.lon.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: FilledButton.tonal(
+              onPressed: () => widget.onCitySelected(location),
+              child: const Text('添加'),
+            ),
           ),
         );
       },
@@ -840,6 +847,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
         final weatherAsync = ref.watch(weatherForCityProvider(city));
 
         return Card(
+          margin: const EdgeInsets.only(bottom: 12),
           color: isDefault
               ? Theme.of(
                   context,
@@ -884,18 +892,23 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                   ),
                   error: (_, __) => const SizedBox(),
                 ),
-                if (!isLocated) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    onPressed: () async {
-                      await ref
-                          .read(cityManagerProvider.notifier)
-                          .removeCity(city.id);
-                    },
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ],
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  onPressed: () async {
+                    await ref
+                        .read(cityManagerProvider.notifier)
+                        .removeCity(city.id);
+
+                    // If all cities are deleted, re-init location automatically
+                    final cities = ref.read(cityManagerProvider);
+                    if (cities.isEmpty) {
+                      ref.read(locationInitProvider.notifier).initLocation(
+                        force: true,
+                      );
+                    }
+                  },
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ],
             ),
             onTap: () async {
