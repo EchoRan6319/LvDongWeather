@@ -22,193 +22,211 @@ class SettingsScreen extends ConsumerWidget {
     final themeSettings = ref.watch(themeProvider);
     final appSettings = ref.watch(settingsProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        children: [
-          _SettingsSection(
-            title: '个性化',
-            icon: Icons.palette_outlined,
-            children: [
-              _SettingsTile(
-                icon: Icons.brightness_6_outlined,
-                title: '主题模式',
-                subtitle: _getThemeModeName(themeSettings.themeMode),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isWide = constraints.maxWidth > 900;
 
-                onTap: () => _showThemeModeDialog(context, ref, themeSettings),
-              ),
-              _SettingsTile(
-                icon: Icons.color_lens_outlined,
-                title: '主题颜色',
-                subtitle: themeSettings.useDynamicColor ? '跟随壁纸' : '自定义颜色',
-                trailing: _ColorPreview(
-                  color:
-                      themeSettings.seedColor ??
-                      AppTheme.presetSeedColors.first,
+        final content = ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          children: [
+            _SettingsSection(
+              title: '个性化',
+              icon: Icons.palette_outlined,
+              children: [
+                _SettingsTile(
+                  icon: Icons.brightness_6_outlined,
+                  title: '主题模式',
+                  subtitle: _getThemeModeName(themeSettings.themeMode),
+
+                  onTap: () =>
+                      _showThemeModeDialog(context, ref, themeSettings),
                 ),
-                onTap: () =>
-                    _showColorPickerDialog(context, ref, themeSettings),
-              ),
-              _SettingsSwitch(
-                icon: Icons.wallpaper_outlined,
-                title: '动态取色',
-                subtitle: '根据壁纸自动生成主题色（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
-                value: themeSettings.useDynamicColor,
-                onChanged: (value) {
-                  ref.read(themeProvider.notifier).setUseDynamicColor(value);
-                },
-              ),
-              _SettingsSwitch(
-                icon: Icons.font_download_outlined,
-                title: '内置字体 (OPPO Sans)',
-                subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题',
-                value: themeSettings.useCustomFont,
-                onChanged: (value) {
-                  ref.read(themeProvider.notifier).setUseCustomFont(value);
-                },
-              ),
-            ],
-          ),
-          _SettingsSection(
-            title: '通知',
-            icon: Icons.notifications_outlined,
-            children: [
-              _SettingsSwitch(
-                icon: Icons.warning_amber_outlined,
-                title: '天气预警通知',
-                subtitle: '接收极端天气预警推送',
-                value: appSettings.notificationsEnabled,
-                onChanged: (value) async {
-                  if (value) {
-                    final hasPermission = await notificationServiceProvider
-                        .requestNotificationPermission();
-                    if (!hasPermission) {
-                      if (context.mounted) {
-                        _showPermissionDeniedDialog(context);
+                _SettingsTile(
+                  icon: Icons.color_lens_outlined,
+                  title: '主题颜色',
+                  subtitle: themeSettings.useDynamicColor ? '跟随壁纸' : '自定义颜色',
+                  trailing: _ColorPreview(
+                    color:
+                        themeSettings.seedColor ??
+                        AppTheme.presetSeedColors.first,
+                  ),
+                  onTap: () =>
+                      _showColorPickerDialog(context, ref, themeSettings),
+                ),
+                _SettingsSwitch(
+                  icon: Icons.wallpaper_outlined,
+                  title: '动态取色',
+                  subtitle: '根据壁纸自动生成主题色（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
+                  value: themeSettings.useDynamicColor,
+                  onChanged: (value) {
+                    ref.read(themeProvider.notifier).setUseDynamicColor(value);
+                  },
+                ),
+                _SettingsSwitch(
+                  icon: Icons.font_download_outlined,
+                  title: '内置字体 (OPPO Sans)',
+                  subtitle: '启用后可解决部分ColorOS设备系统的字体显示问题',
+                  value: themeSettings.useCustomFont,
+                  onChanged: (value) {
+                    ref.read(themeProvider.notifier).setUseCustomFont(value);
+                  },
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: '通知',
+              icon: Icons.notifications_outlined,
+              children: [
+                _SettingsSwitch(
+                  icon: Icons.warning_amber_outlined,
+                  title: '天气预警通知',
+                  subtitle: '接收极端天气预警推送',
+                  value: appSettings.notificationsEnabled,
+                  onChanged: (value) async {
+                    if (value) {
+                      final hasPermission = await notificationServiceProvider
+                          .requestNotificationPermission();
+                      if (!hasPermission) {
+                        if (context.mounted) {
+                          _showPermissionDeniedDialog(context);
+                        }
+                        return;
                       }
-                      return;
                     }
-                  }
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setNotificationsEnabled(value);
-                },
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setNotificationsEnabled(value);
+                  },
+                ),
+                _SettingsTile(
+                  icon: Icons.schedule_outlined,
+                  title: '定时播报',
+                  subtitle: '设置每日定时推送天气信息',
+                  onTap: () => ScheduledBroadcastScreen.show(context, ref),
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: '显示',
+              icon: Icons.visibility_outlined,
+              children: [
+                _SettingsSwitch(
+                  icon: Icons.psychology_outlined,
+                  title: '显示 AI 助手',
+                  subtitle: '在底部导航栏显示 AI 助手页面',
+                  value: appSettings.showAIAssistant,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setShowAIAssistant(value);
+                  },
+                ),
+                _SettingsTile(
+                  icon: Icons.device_thermostat_outlined,
+                  title: '温度单位',
+                  subtitle: appSettings.temperatureUnit == 'celsius'
+                      ? '摄氏度 (°C)'
+                      : '华氏度 (°F)',
+                  onTap: () =>
+                      _showTemperatureUnitDialog(context, ref, appSettings),
+                ),
+                _SettingsTile(
+                  icon: Icons.location_on_outlined,
+                  title: '位置显示精度',
+                  subtitle:
+                      appSettings.locationAccuracyLevel ==
+                          LocationAccuracyLevel.street
+                      ? '街道级别'
+                      : '区县级别',
+                  onTap: () =>
+                      _showLocationAccuracyDialog(context, ref, appSettings),
+                ),
+                _SettingsTile(
+                  icon: Icons.sort_rounded,
+                  title: '天气卡片排序',
+                  subtitle: '自定义天气详情页卡片显示顺序',
+                  onTap: () => CardOrderScreen.show(context),
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: '数据',
+              icon: Icons.sync_outlined,
+              children: [
+                _SettingsSwitch(
+                  icon: Icons.autorenew_outlined,
+                  title: '自动刷新',
+                  subtitle: '每 ${appSettings.refreshInterval} 分钟自动更新',
+                  value: appSettings.autoRefreshEnabled,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setAutoRefreshEnabled(value);
+                  },
+                ),
+                _SettingsTile(
+                  icon: Icons.timer_outlined,
+                  title: '刷新间隔',
+                  subtitle: '${appSettings.refreshInterval} 分钟',
+                  onTap: () =>
+                      _showRefreshIntervalDialog(context, ref, appSettings),
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: '高级',
+              icon: Icons.tune_outlined,
+              children: [
+                _SettingsSwitch(
+                  icon: Icons.swipe_outlined,
+                  title: '预测式返回手势',
+                  subtitle: '返回时显示预览动画（Android 14+）',
+                  value: appSettings.predictiveBackEnabled,
+                  onChanged: (value) {
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setPredictiveBackEnabled(value);
+                  },
+                ),
+              ],
+            ),
+            _SettingsSection(
+              title: '关于',
+              icon: Icons.info_outline,
+              children: [
+                _SettingsTile(
+                  icon: Icons.apps_outlined,
+                  title: '关于轻氧天气',
+                  onTap: () => _showAboutDialog(context),
+                ),
+                _SettingsTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: '隐私政策',
+                  onTap: () => _showPrivacyPolicy(context),
+                ),
+                _SettingsTile(
+                  icon: Icons.description_outlined,
+                  title: '用户协议',
+                  onTap: () => _showUserAgreement(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        );
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('设置')),
+          body: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: isWide ? 900 : double.infinity,
               ),
-              _SettingsTile(
-                icon: Icons.schedule_outlined,
-                title: '定时播报',
-                subtitle: '设置每日定时推送天气信息',
-                onTap: () => ScheduledBroadcastScreen.show(context, ref),
-              ),
-            ],
+              child: content,
+            ),
           ),
-          _SettingsSection(
-            title: '显示',
-            icon: Icons.visibility_outlined,
-            children: [
-              _SettingsSwitch(
-                icon: Icons.psychology_outlined,
-                title: '显示 AI 助手',
-                subtitle: '在底部导航栏显示 AI 助手页面',
-                value: appSettings.showAIAssistant,
-                onChanged: (value) {
-                  ref.read(settingsProvider.notifier).setShowAIAssistant(value);
-                },
-              ),
-              _SettingsTile(
-                icon: Icons.device_thermostat_outlined,
-                title: '温度单位',
-                subtitle: appSettings.temperatureUnit == 'celsius'
-                    ? '摄氏度 (°C)'
-                    : '华氏度 (°F)',
-                onTap: () =>
-                    _showTemperatureUnitDialog(context, ref, appSettings),
-              ),
-              _SettingsTile(
-                icon: Icons.location_on_outlined,
-                title: '位置显示精度',
-                subtitle:
-                    appSettings.locationAccuracyLevel ==
-                        LocationAccuracyLevel.street
-                    ? '街道级别'
-                    : '区县级别',
-                onTap: () =>
-                    _showLocationAccuracyDialog(context, ref, appSettings),
-              ),
-              _SettingsTile(
-                icon: Icons.sort_rounded,
-                title: '天气卡片排序',
-                subtitle: '自定义天气详情页卡片显示顺序',
-                onTap: () => CardOrderScreen.show(context),
-              ),
-            ],
-          ),
-          _SettingsSection(
-            title: '数据',
-            icon: Icons.sync_outlined,
-            children: [
-              _SettingsSwitch(
-                icon: Icons.autorenew_outlined,
-                title: '自动刷新',
-                subtitle: '每 ${appSettings.refreshInterval} 分钟自动更新',
-                value: appSettings.autoRefreshEnabled,
-                onChanged: (value) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setAutoRefreshEnabled(value);
-                },
-              ),
-              _SettingsTile(
-                icon: Icons.timer_outlined,
-                title: '刷新间隔',
-                subtitle: '${appSettings.refreshInterval} 分钟',
-                onTap: () =>
-                    _showRefreshIntervalDialog(context, ref, appSettings),
-              ),
-            ],
-          ),
-          _SettingsSection(
-            title: '高级',
-            icon: Icons.tune_outlined,
-            children: [
-              _SettingsSwitch(
-                icon: Icons.swipe_outlined,
-                title: '预测式返回手势',
-                subtitle: '返回时显示预览动画（Android 14+）',
-                value: appSettings.predictiveBackEnabled,
-                onChanged: (value) {
-                  ref
-                      .read(settingsProvider.notifier)
-                      .setPredictiveBackEnabled(value);
-                },
-              ),
-            ],
-          ),
-          _SettingsSection(
-            title: '关于',
-            icon: Icons.info_outline,
-            children: [
-              _SettingsTile(
-                icon: Icons.apps_outlined,
-                title: '关于轻氧天气',
-                onTap: () => _showAboutDialog(context),
-              ),
-              _SettingsTile(
-                icon: Icons.privacy_tip_outlined,
-                title: '隐私政策',
-                onTap: () => _showPrivacyPolicy(context),
-              ),
-              _SettingsTile(
-                icon: Icons.description_outlined,
-                title: '用户协议',
-                onTap: () => _showUserAgreement(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -928,10 +946,19 @@ class SettingsScreen extends ConsumerWidget {
         content: [
           '生效日期：2026年3月4日',
           '轻氧天气（以下简称“我们”）非常重视您的隐私。本协议阐述了我们如何处理您的个人信息。',
-          ('1. 信息收集', '我们仅在您使用应用期间收集必要的信息，包括：\n• 位置信息：仅用于获取您当前位置的天气预报。您可以随时在系统中关闭该权限。'),
+          (
+            '1. 信息收集',
+            '我们仅在您使用应用期间收集必要的信息，包括：\n• 位置信息：仅用于获取您当前位置的天气预报。您可以随时在系统中关闭该权限。',
+          ),
           ('2. 信息使用', '收集的信息仅用于向您提供准确的天气预报和相关推送服务。我们不会将您的个人信息出售给第三方。'),
-          ('3. 数据存储', '您的位置偏好设置存储在设备本地（SharedPreferences），除非您手动清理应用数据，否则信息将保留在您的设备上。'),
-          ('4. 第三方服务', '本应用使用和风天气（QWeather）及彩云天气提供的天气接口，您的位置坐标（经纬度）将发送至其服务器以换取天气数据。'),
+          (
+            '3. 数据存储',
+            '您的位置偏好设置存储在设备本地（SharedPreferences），除非您手动清理应用数据，否则信息将保留在您的设备上。',
+          ),
+          (
+            '4. 第三方服务',
+            '本应用使用和风天气（QWeather）及彩云天气提供的天气接口，您的位置坐标（经纬度）将发送至其服务器以换取天气数据。',
+          ),
         ],
       ),
     );
@@ -949,13 +976,15 @@ class SettingsScreen extends ConsumerWidget {
           '欢迎使用轻氧天气！请在使用前阅读以下条款。',
           ('1. 服务内容', '轻氧天气为您提供天气查询、极端天气预警及定时播报等非商业服务。'),
           ('2. 使用规范', '您不得将本应用用于任何非法目的，或以任何方式干扰应用的正常运行。'),
-          ('3. 免责声明', '天气数据由第三方提供，受气象、地理、网络等多种因素影响，数据的准时性、准确性可能存在偏差。本应用不承担因天气数据错误导致的任何直接或间接损失。'),
+          (
+            '3. 免责声明',
+            '天气数据由第三方提供，受气象、地理、网络等多种因素影响，数据的准时性、准确性可能存在偏差。本应用不承担因天气数据错误导致的任何直接或间接损失。',
+          ),
           ('4. 协议变更', '我们保留随时修改本协议的权利，修改后的协议将在应用内公布。'),
         ],
       ),
     );
   }
-
 }
 
 class _SettingsSection extends StatelessWidget {
@@ -1126,9 +1155,7 @@ class _SettingsSwitch extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1144,10 +1171,7 @@ class _SettingsSwitch extends StatelessWidget {
                   ],
                 ),
               ),
-              Switch(
-                value: value,
-                onChanged: onChanged,
-              ),
+              Switch(value: value, onChanged: onChanged),
             ],
           ),
         ),
@@ -1316,8 +1340,9 @@ class _SelectionTile extends StatelessWidget {
                       Text(
                         item.title,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight:
-                              item.isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: item.isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           color: item.isSelected
                               ? colorScheme.onSecondaryContainer
                               : colorScheme.onSurface,
@@ -1327,12 +1352,13 @@ class _SelectionTile extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           item.subtitle!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: item.isSelected
-                                ? colorScheme.onSecondaryContainer
-                                    .withValues(alpha: 0.7)
-                                : colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: item.isSelected
+                                    ? colorScheme.onSecondaryContainer
+                                          .withValues(alpha: 0.7)
+                                    : colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ],
@@ -1398,10 +1424,11 @@ class _ContentBottomSheet extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           item,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.5,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                height: 1.5,
+                              ),
                         ),
                       );
                     } else if (item is (String, String)) {
@@ -1412,18 +1439,20 @@ class _ContentBottomSheet extends StatelessWidget {
                           children: [
                             Text(
                               item.$1,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               item.$2,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                height: 1.5,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    height: 1.5,
+                                  ),
                             ),
                           ],
                         ),
@@ -1470,6 +1499,7 @@ class _ContentBottomSheet extends StatelessWidget {
     );
   }
 }
+
 class _AboutBottomSheet extends StatelessWidget {
   const _AboutBottomSheet();
 
@@ -1502,15 +1532,14 @@ class _AboutBottomSheet extends StatelessWidget {
                       const SizedBox(height: 16),
                       Text(
                         '轻氧天气',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         '版本 3.0.0',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 32),
                       _buildAboutItem(
@@ -1582,9 +1611,9 @@ class _AboutBottomSheet extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 if (isLink)
@@ -1596,18 +1625,18 @@ class _AboutBottomSheet extends StatelessWidget {
                     child: Text(
                       content,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.primary,
-                            decoration: TextDecoration.underline,
-                          ),
+                        color: colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   )
                 else
                   Text(
                     content,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          height: 1.5,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
                   ),
               ],
             ),

@@ -7,42 +7,50 @@ import 'package:shared_preferences/shared_preferences.dart';
 class NotificationService {
   /// 单例实例
   static final NotificationService _instance = NotificationService._internal();
-  
+
   /// 工厂构造函数
   factory NotificationService() => _instance;
-  
+
   /// 私有构造函数
   NotificationService._internal();
 
   /// Flutter本地通知插件实例
-  final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
-  
+  final FlutterLocalNotificationsPlugin notifications =
+      FlutterLocalNotificationsPlugin();
+
   /// 是否已初始化
   bool _isInitialized = false;
 
   /// 通知渠道ID
   static const String _channelId = 'weather_alerts';
-  
+
   /// 通知渠道名称
   static const String _channelName = '天气预警';
-  
+
   /// 通知渠道描述
   static const String _channelDescription = '接收极端天气预警通知';
-  
+
   /// 首次运行标记键
   static const String _keyFirstRun = 'first_run_completed';
-  
+
   /// 通知权限请求标记键
-  static const String _keyNotificationPermissionRequested = 'notification_permission_requested';
+  static const String _keyNotificationPermissionRequested =
+      'notification_permission_requested';
 
   /// 获取是否已初始化
   bool get isInitialized => _isInitialized;
 
   /// 初始化通知服务
   Future<void> initialize() async {
+    if (kIsWeb) {
+      _isInitialized = true;
+      return;
+    }
     if (_isInitialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -63,47 +71,53 @@ class NotificationService {
   }
 
   /// 通知点击回调
-  /// 
+  ///
   /// [response] 通知响应
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
   }
 
   /// 请求通知权限
-  /// 
+  ///
   /// 返回是否获得权限
   Future<bool> requestNotificationPermission() async {
+    if (kIsWeb) {
+      return false;
+    }
     if (defaultTargetPlatform == TargetPlatform.android) {
       final status = await Permission.notification.status;
       if (status.isGranted) {
         return true;
       }
-      
+
       final result = await Permission.notification.request();
       return result.isGranted;
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       final result = await notifications
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
       return result ?? false;
     }
     return false;
   }
 
   /// 检查通知权限
-  /// 
+  ///
   /// 返回是否有权限
   Future<bool> checkNotificationPermission() async {
+    if (kIsWeb) {
+      return false;
+    }
     if (defaultTargetPlatform == TargetPlatform.android) {
       final status = await Permission.notification.status;
       return status.isGranted;
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       final result = await notifications
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >()
           ?.checkPermissions();
       return result?.isEnabled ?? false;
     }
@@ -111,7 +125,7 @@ class NotificationService {
   }
 
   /// 检查是否首次运行
-  /// 
+  ///
   /// 返回是否首次运行
   Future<bool> isFirstRun() async {
     final prefs = await SharedPreferences.getInstance();
@@ -125,7 +139,7 @@ class NotificationService {
   }
 
   /// 检查是否已请求过通知权限
-  /// 
+  ///
   /// 返回是否已请求过
   Future<bool> hasRequestedNotificationPermission() async {
     final prefs = await SharedPreferences.getInstance();
@@ -139,7 +153,7 @@ class NotificationService {
   }
 
   /// 显示天气预警通知
-  /// 
+  ///
   /// [id] 通知ID
   /// [title] 通知标题
   /// [body] 通知内容
@@ -150,6 +164,9 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    if (kIsWeb) {
+      return;
+    }
     if (!_isInitialized) {
       await initialize();
     }
@@ -193,7 +210,7 @@ class NotificationService {
   }
 
   /// 显示天气预警通知
-  /// 
+  ///
   /// [alertType] 预警类型
   /// [severity] 严重程度
   /// [description] 预警描述
@@ -204,7 +221,7 @@ class NotificationService {
   }) async {
     final title = '⚠️ $alertType';
     final body = '$severity\n$description';
-    
+
     await showWeatherAlert(
       id: alertType.hashCode,
       title: title,
@@ -214,23 +231,34 @@ class NotificationService {
   }
 
   /// 取消指定ID的通知
-  /// 
+  ///
   /// [id] 通知ID
   Future<void> cancelNotification(int id) async {
+    if (kIsWeb) {
+      return;
+    }
     await notifications.cancel(id);
   }
 
   /// 取消所有通知
   Future<void> cancelAllNotifications() async {
+    if (kIsWeb) {
+      return;
+    }
     await notifications.cancelAll();
   }
 
   /// 创建通知渠道（Android）
   Future<void> createNotificationChannel() async {
+    if (kIsWeb) {
+      return;
+    }
     if (defaultTargetPlatform == TargetPlatform.android) {
-      final androidPlugin = notifications.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      
+      final androidPlugin = notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
       await androidPlugin?.createNotificationChannel(
         const AndroidNotificationChannel(
           _channelId,

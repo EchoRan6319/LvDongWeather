@@ -14,39 +14,44 @@ class ScheduledBroadcastService {
   /// 单例实例
   static final ScheduledBroadcastService _instance =
       ScheduledBroadcastService._internal();
-  
+
   /// 工厂构造函数
   factory ScheduledBroadcastService() => _instance;
-  
+
   /// 私有构造函数
   ScheduledBroadcastService._internal();
 
   /// 天气服务实例
   final QWeatherService _weatherService = QWeatherService();
-  
+
   /// 获取通知插件实例
-  FlutterLocalNotificationsPlugin get _notifications => notificationServiceProvider.notifications;
+  FlutterLocalNotificationsPlugin get _notifications =>
+      notificationServiceProvider.notifications;
 
   /// 早上通知ID
   static const int _morningNotificationId = 10001;
-  
+
   /// 晚上通知ID
   static const int _eveningNotificationId = 10002;
-  
+
   /// 通知渠道ID
   static const String _channelId = 'scheduled_broadcast';
-  
+
   /// 通知渠道名称
   static const String _channelName = '定时播报';
-  
+
   /// 通知渠道描述
   static const String _channelDescription = '定时推送天气信息';
 
   /// 是否已初始化
   bool _isInitialized = false;
-  
+
   /// 初始化定时播报服务
   Future<void> initialize() async {
+    if (kIsWeb) {
+      _isInitialized = true;
+      return;
+    }
     if (_isInitialized) return;
     await notificationServiceProvider.initialize();
 
@@ -82,9 +87,12 @@ class ScheduledBroadcastService {
   }
 
   /// 调度定时播报
-  /// 
+  ///
   /// [settings] 定时播报设置
   Future<void> scheduleBroadcasts(ScheduledBroadcastSettings settings) async {
+    if (kIsWeb) {
+      return;
+    }
     await initialize();
     await cancelAllScheduledBroadcasts();
 
@@ -123,11 +131,14 @@ class ScheduledBroadcastService {
   }
 
   /// 调度早上播报
-  /// 
+  ///
   /// [settings] 定时播报设置
   Future<void> _scheduleMorningBroadcast(
     ScheduledBroadcastSettings settings,
   ) async {
+    if (kIsWeb) {
+      return;
+    }
     final scheduledDate = _nextInstanceOfTime(
       settings.morningTime.hour,
       settings.morningTime.minute,
@@ -171,11 +182,14 @@ class ScheduledBroadcastService {
   }
 
   /// 调度晚上播报
-  /// 
+  ///
   /// [settings] 定时播报设置
   Future<void> _scheduleEveningBroadcast(
     ScheduledBroadcastSettings settings,
   ) async {
+    if (kIsWeb) {
+      return;
+    }
     final scheduledDate = _nextInstanceOfTime(
       settings.eveningTime.hour,
       settings.eveningTime.minute,
@@ -217,10 +231,10 @@ class ScheduledBroadcastService {
   }
 
   /// 计算下一个指定时间的实例
-  /// 
+  ///
   /// [hour] 小时
   /// [minute] 分钟
-  /// 
+  ///
   /// 返回下一个指定时间的TZDateTime实例
   tz.TZDateTime? _nextInstanceOfTime(int hour, int minute) {
     try {
@@ -244,9 +258,12 @@ class ScheduledBroadcastService {
   }
 
   /// 构建通知详情
-  /// 
+  ///
   /// 返回通知详情实例
   Future<NotificationDetails> _buildNotificationDetails() async {
+    if (kIsWeb) {
+      return const NotificationDetails();
+    }
     final androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
@@ -271,12 +288,15 @@ class ScheduledBroadcastService {
 
   /// 取消所有已调度的播报
   Future<void> cancelAllScheduledBroadcasts() async {
+    if (kIsWeb) {
+      return;
+    }
     await _notifications.cancel(_morningNotificationId);
     await _notifications.cancel(_eveningNotificationId);
   }
 
   /// 发送早上播报
-  /// 
+  ///
   /// [settings] 定时播报设置
   Future<void> sendMorningBroadcast(ScheduledBroadcastSettings settings) async {
     try {
@@ -305,7 +325,7 @@ class ScheduledBroadcastService {
   }
 
   /// 发送晚上播报
-  /// 
+  ///
   /// [settings] 定时播报设置
   Future<void> sendEveningBroadcast(ScheduledBroadcastSettings settings) async {
     try {
@@ -334,7 +354,7 @@ class ScheduledBroadcastService {
   }
 
   /// 获取默认城市的天气数据
-  /// 
+  ///
   /// 返回天气数据实例
   Future<WeatherData> _fetchDefaultCityWeather() async {
     debugPrint('[ScheduledBroadcast] Fetching default city weather...');
@@ -378,10 +398,10 @@ class ScheduledBroadcastService {
   }
 
   /// 构建早上播报内容
-  /// 
+  ///
   /// [data] 天气数据
   /// [settings] 定时播报设置
-  /// 
+  ///
   /// 返回播报内容字符串
   String _buildMorningContent(
     WeatherData data,
@@ -412,10 +432,10 @@ class ScheduledBroadcastService {
   }
 
   /// 构建晚上播报内容
-  /// 
+  ///
   /// [data] 天气数据
   /// [settings] 定时播报设置
-  /// 
+  ///
   /// 返回播报内容字符串
   String _buildEveningContent(
     WeatherData data,
@@ -449,7 +469,7 @@ class ScheduledBroadcastService {
   }
 
   /// 发送错误通知
-  /// 
+  ///
   /// [title] 通知标题
   /// [message] 错误消息
   Future<void> _sendErrorNotification(String title, String message) async {

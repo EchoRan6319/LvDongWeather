@@ -12,7 +12,7 @@ import '../../widgets/weather_alert_card.dart';
 import '../../widgets/air_quality_card.dart';
 
 /// 天气主页面
-/// 
+///
 /// 显示当前天气信息、天气预报和相关数据
 class WeatherScreen extends ConsumerStatefulWidget {
   const WeatherScreen({super.key});
@@ -74,41 +74,55 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
       }
     });
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: CustomScrollView(
-          slivers: [
-            // 可展开的AppBar，显示当前天气
-            SliverAppBar(
-              expandedHeight: 280,
-              floating: false,
-              pinned: true,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.add_location_outlined),
-                  onPressed: _showCitySelector,
-                  tooltip: '添加城市',
-                ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: _buildCurrentWeather(
-                  weatherState,
-                  defaultCity,
-                  ref.watch(settingsProvider),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isWide = constraints.maxWidth > 900;
+
+        final scaffoldBody = RefreshIndicator(
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 280,
+                floating: false,
+                pinned: true,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_location_outlined),
+                    onPressed: _showCitySelector,
+                    tooltip: '添加城市',
+                  ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _buildCurrentWeather(
+                    weatherState,
+                    defaultCity,
+                    ref.watch(settingsProvider),
+                  ),
                 ),
               ),
-            ),
-            // 天气详情内容
-            SliverToBoxAdapter(child: _buildContent(weatherState)),
-          ],
-        ),
-      ),
+              SliverToBoxAdapter(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: isWide ? 900 : double.infinity,
+                    ),
+                    child: _buildContent(weatherState),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        return Scaffold(body: scaffoldBody);
+      },
     );
   }
 
   /// 构建当前天气显示
-  /// 
+  ///
   /// [state]: 天气状态
   /// [location]: 位置信息
   /// [settings]: 应用设置
@@ -262,7 +276,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 构建温度信息项
-  /// 
+  ///
   /// [label]: 标签
   /// [value]: 值
   Widget _buildTempInfo(String label, String value) {
@@ -285,7 +299,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 构建错误状态
-  /// 
+  ///
   /// [message]: 错误信息
   Widget _buildErrorState(String message) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -384,7 +398,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 构建天气详情内容
-  /// 
+  ///
   /// [state]: 天气状态
   Widget _buildContent(WeatherState state) {
     final weather = state.weatherData;
@@ -415,14 +429,12 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               case 'hourly':
                 card = HourlyForecast(
                   hourly: weather.hourly,
-                  sunrise:
-                      weather.daily.isNotEmpty
-                          ? weather.daily.first.sunrise
-                          : null,
-                  sunset:
-                      weather.daily.isNotEmpty
-                          ? weather.daily.first.sunset
-                          : null,
+                  sunrise: weather.daily.isNotEmpty
+                      ? weather.daily.first.sunrise
+                      : null,
+                  sunset: weather.daily.isNotEmpty
+                      ? weather.daily.first.sunset
+                      : null,
                   temperatureUnit: settings.temperatureUnit,
                 );
                 break;
@@ -430,14 +442,12 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 card = DailyForecast(
                   daily: weather.daily,
                   currentWeather: weather.current,
-                  sunrise:
-                      weather.daily.isNotEmpty
-                          ? weather.daily.first.sunrise
-                          : null,
-                  sunset:
-                      weather.daily.isNotEmpty
-                          ? weather.daily.first.sunset
-                          : null,
+                  sunrise: weather.daily.isNotEmpty
+                      ? weather.daily.first.sunrise
+                      : null,
+                  sunset: weather.daily.isNotEmpty
+                      ? weather.daily.first.sunset
+                      : null,
                   temperatureUnit: settings.temperatureUnit,
                 );
                 break;
@@ -467,7 +477,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 构建降雨预测卡片
-  /// 
+  ///
   /// [rain]: 降雨预测数据
   Widget _buildRainPrediction(CaiyunMinuteRain rain) {
     return Card(
@@ -498,7 +508,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 构建天气详情卡片
-  /// 
+  ///
   /// [current]: 当前天气
   /// [todayDaily]: 今日天气
   Widget _buildWeatherDetails(
@@ -598,7 +608,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 构建详情项
-  /// 
+  ///
   /// [icon]: 图标
   /// [label]: 标签
   /// [value]: 值
@@ -637,7 +647,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 判断是否为夜间
-  /// 
+  ///
   /// [obsTime]: 观测时间
   /// [sunrise]: 日出时间
   /// [sunset]: 日落时间
@@ -665,7 +675,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
   }
 
   /// 解析时间字符串
-  /// 
+  ///
   /// [time]: 时间字符串 (HH:MM)
   /// [baseDate]: 基础日期
   DateTime? _parseTime(String time, DateTime baseDate) {
@@ -688,7 +698,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
 }
 
 /// 城市选择器底部弹窗
-/// 
+///
 /// 用于搜索和选择城市
 class _CitySelectorSheet extends ConsumerStatefulWidget {
   final Function(Location, {bool isLocated}) onCitySelected;
@@ -711,7 +721,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
   }
 
   /// 搜索城市
-  /// 
+  ///
   /// [query]: 搜索关键词
   Future<void> _searchCities(String query) async {
     if (query.isEmpty) {
@@ -887,7 +897,7 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
   }
 
   /// 构建城市列表
-  /// 
+  ///
   /// [cities]: 城市列表
   /// [defaultCity]: 默认城市
   /// [scrollController]: 滚动控制器
@@ -1001,9 +1011,9 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
                     // 如果所有城市都被删除，自动重新初始化位置
                     final cities = ref.read(cityManagerProvider);
                     if (cities.isEmpty) {
-                      ref.read(locationInitProvider.notifier).initLocation(
-                        force: true,
-                      );
+                      ref
+                          .read(locationInitProvider.notifier)
+                          .initLocation(force: true);
                     }
                   },
                   color: Theme.of(context).colorScheme.error,

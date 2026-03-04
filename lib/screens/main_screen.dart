@@ -21,7 +21,7 @@ class MainScreen extends ConsumerStatefulWidget {
 class _MainScreenState extends ConsumerState<MainScreen> {
   /// 是否已初始化
   bool _hasInitialized = false;
-  
+
   /// 当前选中的导航索引
   int _currentIndex = 0;
 
@@ -50,33 +50,26 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   /// 首次运行时请求权限
   Future<void> _requestPermissionsOnFirstRun() async {
-    final hasLocationPermission =
-        await ref
-            .read(locationInitProvider.notifier)
-            .requestLocationPermission();
+    final hasLocationPermission = await ref
+        .read(locationInitProvider.notifier)
+        .requestLocationPermission();
 
     if (!hasLocationPermission) {
-      _showPermissionDialog(
-        '定位权限',
-        '轻氧天气需要定位权限来获取您当前位置的天气信息。请在设置中授予定位权限。',
-      );
+      _showPermissionDialog('定位权限', '轻氧天气需要定位权限来获取您当前位置的天气信息。请在设置中授予定位权限。');
     }
 
     final hasNotificationPermission = await notificationServiceProvider
         .requestNotificationPermission();
 
     if (!hasNotificationPermission) {
-      _showPermissionDialog(
-        '通知权限',
-        '轻氧天气需要通知权限来推送天气预警信息。请在设置中授予通知权限。',
-      );
+      _showPermissionDialog('通知权限', '轻氧天气需要通知权限来推送天气预警信息。请在设置中授予通知权限。');
     }
 
     await notificationServiceProvider.markNotificationPermissionRequested();
   }
 
   /// 显示权限请求对话框
-  /// 
+  ///
   /// [title] 对话框标题
   /// [message] 对话框内容
   void _showPermissionDialog(String title, String message) {
@@ -84,24 +77,23 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     showDialog(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('稍后设置'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  openAppSettings();
-                },
-                child: const Text('去设置'),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('稍后设置'),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              openAppSettings();
+            },
+            child: const Text('去设置'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -117,7 +109,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   /// 根据新的精度级别刷新位置
-  /// 
+  ///
   /// [accuracyLevel] 位置精度级别
   Future<void> _refreshLocationWithNewAccuracy(
     LocationAccuracyLevel accuracyLevel,
@@ -143,9 +135,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   /// 获取屏幕列表
-  /// 
+  ///
   /// [showAIAssistant] 是否显示AI助手
-  /// 
+  ///
   /// 返回屏幕列表
   List<Widget> _getScreens(bool showAIAssistant) {
     return [
@@ -156,9 +148,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   /// 获取导航目标列表
-  /// 
+  ///
   /// [showAIAssistant] 是否显示AI助手
-  /// 
+  ///
   /// 返回导航目标列表
   List<NavigationDestination> _getDestinations(bool showAIAssistant) {
     return [
