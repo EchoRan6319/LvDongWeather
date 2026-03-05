@@ -174,21 +174,23 @@ class _DailyItem extends StatelessWidget {
         children: [
           // 日期和星期
           SizedBox(
-            width: 60,
+            width: 80,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   isToday ? '今天' : weekday,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 Text(
                   dateStr,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -216,9 +218,9 @@ class _DailyItem extends StatelessWidget {
           ),
           // 温度范围
           SizedBox(
-            width: 70,
+            width: 80,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   '${WeatherCode.convertTemperature(weather.tempMin, toFahrenheit: temperatureUnit == 'fahrenheit')}${temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
