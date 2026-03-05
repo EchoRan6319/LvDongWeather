@@ -26,12 +26,19 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
     final backgroundColor = alertColor.withValues(alpha: 0.5);
     final elevation = 2.0;
 
+    // 响应式布局参数
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
+    final padding = isLargeScreen ? 24.0 : 16.0;
+    final iconSize = isLargeScreen ? 24.0 : 20.0;
+    final spacing = isLargeScreen ? 12.0 : 8.0;
+
     return Card(
       color: backgroundColor,
       elevation: elevation,
       shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isLargeScreen ? 20 : 16),
         side: BorderSide(
           color: alertColor.withValues(alpha: 0.5),
           width: 1,
@@ -43,13 +50,13 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
             _isExpanded = !_isExpanded;
           });
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isLargeScreen ? 20 : 16),
         child: Padding(
-          padding: const EdgeInsets.only(
-            top: 16,
-            left: 16,
-            right: 16,
-            bottom: 12,
+          padding: EdgeInsets.only(
+            top: padding,
+            left: padding,
+            right: padding,
+            bottom: padding * 0.75,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,41 +65,47 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    size: 20,
+                    size: iconSize,
                     color: levelColor,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: spacing),
                   Expanded(
                     child: Text(
                       widget.alerts.first.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w500,
+                            fontSize: isLargeScreen ? 18 : null,
                           ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: spacing),
                   Icon(
                     _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: iconSize,
                     color: levelColor,
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: spacing),
               Text(
                 '${widget.alerts.length}条预警',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: textColor.withValues(alpha: 0.7),
+                      fontSize: isLargeScreen ? 14 : null,
                     ),
               ),
               if (_isExpanded) ...[
-                const SizedBox(height: 16),
+                SizedBox(height: padding),
                 Container(
                   height: 1,
                   width: double.infinity,
                   color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ).animate().fadeIn(duration: 300.ms),
-                const SizedBox(height: 16),
-                ...widget.alerts.map((alert) => _AlertItem(alert: alert)
+                SizedBox(height: padding),
+                ...widget.alerts.map((alert) => _AlertItem(
+                      alert: alert,
+                      isLargeScreen: isLargeScreen,
+                    )
                     .animate()
                     .fadeIn(duration: 300.ms, delay: 100.ms)
                     .slideY(begin: 0.1, end: 0, duration: 300.ms, delay: 100.ms)
@@ -153,28 +166,32 @@ class _WeatherAlertCardState extends State<WeatherAlertCard> {
 
 class _AlertItem extends StatelessWidget {
   final WeatherAlert alert;
+  final bool isLargeScreen;
 
-  const _AlertItem({required this.alert});
+  const _AlertItem({required this.alert, required this.isLargeScreen});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final spacing = isLargeScreen ? 8.0 : 4.0;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: isLargeScreen ? 12 : 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             alert.text,
-            style: Theme.of(context).textTheme.bodySmall,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontSize: isLargeScreen ? 14 : null,
+                ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: spacing),
           Text(
             '发布时间: ${_formatPubTime(alert.pubTime)}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
-                  fontSize: 11,
+                  fontSize: isLargeScreen ? 12 : 11,
                 ),
           ),
         ],
