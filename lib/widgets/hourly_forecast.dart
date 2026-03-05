@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:io';
+import 'dart:ui';
 import '../models/weather_models.dart';
 import '../core/constants/app_constants.dart';
 
@@ -105,29 +107,40 @@ class HourlyForecast extends StatelessWidget {
         return SizedBox(
           // 根据是否有降水数据调整高度
           height: hasAnyPrecipitation ? 120 : 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: hourly.length,
-            cacheExtent: 1000,
-            physics: const BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  right: index < hourly.length - 1 ? itemGap : 0,
-                ),
-                child: SizedBox(
-                  width: itemWidth,
-                  child: _HourlyItem(
-                    weather: hourly[index],
-                    now: now,
-                    sunrise: sunrise,
-                    sunset: sunset,
-                    showPrecipitation: hasAnyPrecipitation,
-                    temperatureUnit: temperatureUnit,
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.stylus,
+                PointerDeviceKind.invertedStylus,
+                PointerDeviceKind.trackpad,
+              },
+            ),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: hourly.length,
+              cacheExtent: 1000,
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    right: index < hourly.length - 1 ? itemGap : 0,
                   ),
-                ),
-              );
-            },
+                  child: SizedBox(
+                    width: itemWidth,
+                    child: _HourlyItem(
+                      weather: hourly[index],
+                      now: now,
+                      sunrise: sunrise,
+                      sunset: sunset,
+                      showPrecipitation: hasAnyPrecipitation,
+                      temperatureUnit: temperatureUnit,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
