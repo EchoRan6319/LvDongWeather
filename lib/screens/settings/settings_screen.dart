@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:ui';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
@@ -26,9 +27,19 @@ class SettingsScreen extends ConsumerWidget {
       builder: (context, constraints) {
         final bool isWide = constraints.maxWidth > 900;
 
-        final content = ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          children: [
+        final content = ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.stylus,
+              PointerDeviceKind.invertedStylus,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            children: [
             _SettingsSection(
               title: '个性化',
               icon: Icons.palette_outlined,
@@ -213,7 +224,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
           ],
-        );
+        ),
+      );
 
         return Scaffold(
           appBar: AppBar(title: const Text('设置')),

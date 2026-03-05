@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:ui';
 import '../../services/deepseek_service.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
@@ -153,9 +154,20 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
           child: Column(
             children: [
               Expanded(
-                child: chatSession.messages.isEmpty
-                    ? _buildEmptyState()
-                    : _buildChatList(chatSession),
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.stylus,
+                      PointerDeviceKind.invertedStylus,
+                      PointerDeviceKind.trackpad,
+                    },
+                  ),
+                  child: chatSession.messages.isEmpty
+                      ? _buildEmptyState()
+                      : _buildChatList(chatSession),
+                ),
               ),
               if (_isTyping) _buildTypingIndicator(),
               _buildInputArea(),

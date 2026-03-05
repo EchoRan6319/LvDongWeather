@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:ui';
 import '../../models/weather_models.dart';
 import '../../providers/weather_provider.dart';
 import '../../providers/city_provider.dart';
@@ -80,39 +81,50 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
 
         final scaffoldBody = RefreshIndicator(
           onRefresh: _onRefresh,
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 280,
-                floating: false,
-                pinned: true,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.add_location_outlined),
-                    onPressed: _showCitySelector,
-                    tooltip: '添加城市',
-                  ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: _buildCurrentWeather(
-                    weatherState,
-                    defaultCity,
-                    ref.watch(settingsProvider),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: isWide ? 900 : double.infinity,
+          child: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.stylus,
+                PointerDeviceKind.invertedStylus,
+                PointerDeviceKind.trackpad,
+              },
+            ),
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 280,
+                  floating: false,
+                  pinned: true,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.add_location_outlined),
+                      onPressed: _showCitySelector,
+                      tooltip: '添加城市',
                     ),
-                    child: _buildContent(weatherState),
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: _buildCurrentWeather(
+                      weatherState,
+                      defaultCity,
+                      ref.watch(settingsProvider),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isWide ? 900 : double.infinity,
+                      ),
+                      child: _buildContent(weatherState),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
 
