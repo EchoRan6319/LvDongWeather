@@ -258,7 +258,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d windows
    ```
 
-### iOS
+### iOS（自行测试）
 
 1. **运行调试版**
    ```bash
@@ -266,7 +266,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d ios
    ```
 
-### macOS
+### macOS（自行测试）
 
 1. **运行调试版**
    ```bash
@@ -274,7 +274,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d macos
    ```
 
-### Linux
+### Linux（自行测试）
 
 1. **运行调试版**
    ```bash
@@ -282,7 +282,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d linux
    ```
 
-### Web
+### Web（自行测试）
 
 1. **运行调试版**
    ```bash
@@ -322,7 +322,7 @@ flutter build windows --release
 # Release 版本：build\windows\runner\Release\pureweather.exe
 ```
 
-### iOS
+### iOS（自行测试）
 
 ```bash
 # 构建 Debug 版本
@@ -332,7 +332,7 @@ flutter build ios
 flutter build ios --release
 ```
 
-### macOS
+### macOS（自行测试）
 
 ```bash
 # 构建 Debug 版本
@@ -342,7 +342,7 @@ flutter build macos
 flutter build macos --release
 ```
 
-### Linux
+### Linux（自行测试）
 
 ```bash
 # 构建 Debug 版本
@@ -352,7 +352,7 @@ flutter build linux
 flutter build linux --release
 ```
 
-### Web
+### Web（自行测试）
 
 ```bash
 # 构建 Debug 版本
