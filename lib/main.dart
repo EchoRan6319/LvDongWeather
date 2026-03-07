@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,20 +15,7 @@ import 'services/scheduled_broadcast_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    // .env文件不存在，尝试从系统环境变量中读取
-    Map<String, String> envVars = Platform.environment;
-    for (var entry in envVars.entries) {
-      if (entry.key.startsWith('QWEATHER_') || 
-          entry.key.startsWith('CAIYUN_') || 
-          entry.key.startsWith('AMAP_') || 
-          entry.key.startsWith('DEEPSEEK_')) {
-        dotenv.env[entry.key] = entry.value;
-      }
-    }
-  }
+  await dotenv.load(fileName: ".env");
 
   await notificationServiceProvider.initialize();
   await notificationServiceProvider.createNotificationChannel();
