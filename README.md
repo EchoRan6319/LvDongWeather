@@ -125,11 +125,11 @@ lib/
 - **Android**：完全支持，提供预构建的 APK 文件
 - **Windows**：完全支持，提供预构建的 EXE 文件
 
-### 其他平台（需自行编译）
+### 其他平台（可构建正式版，但部分未经测试）
 
-- **iOS**：理论支持，需自行配置开发者证书和构建环境
-- **macOS**：理论支持，需自行配置开发者证书和构建环境
-- **Linux**：理论支持，可能需要额外的依赖配置
+- **iOS**：支持自动构建正式版（无签名产物），但当前版本未经测试
+- **macOS**：支持自动构建正式版，但当前版本未经测试
+- **Linux**：支持自动构建正式版，但当前版本未经测试
 - **Web**：理论支持，可能存在部分功能限制
 
 ## 快速开始
@@ -269,7 +269,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    # 运行 Web 应用
    flutter run -d web
    ```
-### iOS（自行测试）
+### iOS（未经测试）
 
 1. **运行调试版**
    ```bash
@@ -277,7 +277,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d ios
    ```
 
-### macOS（自行测试）
+### macOS（未经测试）
 
 1. **运行调试版**
    ```bash
@@ -285,7 +285,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d macos
    ```
 
-### Linux（自行测试）
+### Linux（未经测试）
 
 1. **运行调试版**
    ```bash
@@ -340,7 +340,7 @@ flutter build web --release
 # 支持静态网站托管服务
 ```
 
-### iOS（自行测试）
+### iOS（未经测试）
 
 ```bash
 # 构建 Debug 版本
@@ -350,7 +350,7 @@ flutter build ios
 flutter build ios --release
 ```
 
-### macOS（自行测试）
+### macOS（未经测试）
 
 ```bash
 # 构建 Debug 版本
@@ -360,7 +360,7 @@ flutter build macos
 flutter build macos --release
 ```
 
-### Linux（自行测试）
+### Linux（未经测试）
 
 ```bash
 # 构建 Debug 版本
@@ -482,3 +482,4 @@ flutter build linux --release
 ## 许可证
 
 MIT License
+
