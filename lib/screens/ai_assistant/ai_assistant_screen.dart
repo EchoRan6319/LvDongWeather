@@ -457,7 +457,7 @@ class _ChatBubble extends StatelessWidget {
     var text = input.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
     // Keep numbered items readable even when model returns one long line.
-    text = text.replaceAll(RegExp(r'(?<!\n)(\d+[.、])\s*'), '\n$1 ');
+    text = text.replaceAll(RegExp(r'(?<!\n)(\d+[.、])\s*'), '\n\$1 ');
 
     // Break long paragraphs at sentence punctuation for readability.
     text = text.replaceAll(RegExp(r'(?<=[。！？；.!?;])(?=[^\n])'), '\n');
