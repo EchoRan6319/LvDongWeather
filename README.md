@@ -262,7 +262,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
    flutter run -d windows
    ```
 
-### Web（自行测试）
+### Web
 
 1. **运行调试版**
    ```bash
