@@ -2,7 +2,7 @@ name: pureweather
 description: "轻氧天气 - 一款使用 Material You Design 的天气应用"
 publish_to: 'none'
 
-version: 3.4.0
+version: 3.5.0
 
 environment:
   sdk: ^3.9.0
@@ -45,6 +45,7 @@ dev_dependencies:
   json_serializable: ^6.8.0
   freezed: ^2.5.7
   riverpod_generator: ^2.6.2
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -57,3 +58,9 @@ flutter:
     - family: OPPOSans
       fonts:
         - asset: exfonts/OPPO Sans 4.0.ttf
+
+flutter_launcher_icons:
+  android: false
+  ios: true
+  image_path: "assets/icons/app_icon.svg"
+  remove_alpha_ios: true
