@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
+import 'dart:developer';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
@@ -67,18 +69,13 @@ class SettingsScreen extends ConsumerWidget {
                                 icon: Icons.color_lens_outlined,
                                 title: '主题颜色',
                                 subtitle: themeSettings.useDynamicColor ? '跟随壁纸' : '自定义颜色',
-                                trailing: _ColorPreview(
-                                  color:
-                                      themeSettings.seedColor ??
-                                      AppTheme.presetSeedColors.first,
-                                ),
                                 onTap: () =>
                                     _showColorPickerDialog(context, ref, themeSettings),
                               ),
                               _SettingsSwitch(
                                 icon: Icons.wallpaper_outlined,
                                 title: '动态取色',
-                                subtitle: '根据壁纸自动生成主题色（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
+                                subtitle: '根据壁纸自动生成主题色',
                                 value: themeSettings.useDynamicColor,
                                 onChanged: (value) {
                                   ref.read(themeProvider.notifier).setUseDynamicColor(value);
@@ -429,14 +426,92 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     ThemeSettings settings,
   ) {
-    return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        final isSupported = lightDynamic != null;
-        final dynamicColor = lightDynamic?.primary;
+    return FutureBuilder<Color?>(
+      future: _getWallpaperColor(),
+      builder: (context, snapshot) {
+        final wallpaperColor = snapshot.data;
         final isCurrentDynamic = settings.useDynamicColor;
 
-        if (!isSupported) {
-          return _buildDynamicColorNotSupported(context);
+        if (wallpaperColor == null) {
+          return DynamicColorBuilder(
+            builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+              final isSupported = lightDynamic != null;
+              final dynamicColor = lightDynamic?.primary;
+
+              if (!isSupported) {
+                return _buildDynamicColorNotSupported(context);
+              }
+
+              return _SettingsCard(
+                child: InkWell(
+                  onTap: () {
+                    ref.read(themeProvider.notifier).setUseDynamicColor(true);
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: dynamicColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: isCurrentDynamic
+                                ? Border.all(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    width: 2,
+                                  )
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: (dynamicColor ?? Colors.grey).withValues(
+                                  alpha: 0.3,
+                                ),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '壁纸取色',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.w500),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '检测颜色: #${dynamicColor!.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                      fontFamily: 'monospace',
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isCurrentDynamic)
+                          Icon(
+                            Icons.check_circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
         }
 
         return _SettingsCard(
@@ -454,7 +529,7 @@ class SettingsScreen extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: dynamicColor,
+                      color: wallpaperColor,
                       borderRadius: BorderRadius.circular(12),
                       border: isCurrentDynamic
                           ? Border.all(
@@ -464,7 +539,7 @@ class SettingsScreen extends ConsumerWidget {
                           : null,
                       boxShadow: [
                         BoxShadow(
-                          color: (dynamicColor ?? Colors.grey).withValues(
+                          color: wallpaperColor.withValues(
                             alpha: 0.3,
                           ),
                           blurRadius: 8,
@@ -485,7 +560,7 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '检测颜色: #${dynamicColor!.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                          '检测颜色: #${wallpaperColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -509,6 +584,22 @@ class SettingsScreen extends ConsumerWidget {
         );
       },
     );
+  }
+
+  /// 获取壁纸颜色
+  Future<Color?> _getWallpaperColor() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return null;
+
+    try {
+      const channel = MethodChannel('com.echoran.pureweather/wallpaper');
+      final int? colorInt = await channel.invokeMethod<int>('getWallpaperPrimaryColor');
+      if (colorInt != null) {
+        return Color(colorInt);
+      }
+    } catch (e) {
+      debugPrint('[DynamicColor] Failed to get wallpaper color: $e');
+    }
+    return null;
   }
 
   Widget _buildDynamicColorNotSupported(BuildContext context) {

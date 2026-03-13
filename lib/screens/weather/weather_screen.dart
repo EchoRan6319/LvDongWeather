@@ -556,9 +556,9 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Expanded(
                   child: _buildDetailItem(
                     Icons.air,
-                    '风速',
-                    '${current.windSpeed} km/h',
                     current.windDir,
+                    '${current.windScale}级',
+                    null,
                   ),
                 ),
                 Expanded(

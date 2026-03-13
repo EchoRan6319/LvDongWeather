@@ -157,36 +157,21 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     if (!enabled || dynamic == null) return null;
     if (defaultTargetPlatform != TargetPlatform.android) return null;
 
-    // ColorOS 常见的“锁定颜色”列表
-    const suspiciousColors = [
-      Color(0xFF0054D6),
-      Color(0xFF006E06),
-      Color(0xFF006A6A),
-      Color(0xFF005BBD),
-      Color(0xFF0052DC),
-      Color(0xFF005DB5),
-    ];
-    
-    // 如果发现颜色被锁定在上述任意一个颜色，则触发原生绕过
-    final primaryValue = dynamic.primary.toARGB32();
-    bool isSuspicious = suspiciousColors.any((c) => c.toARGB32() == primaryValue);
-
-    if (isSuspicious) {
-      debugPrint('[DynamicColor] Detected suspicious ColorOS default color: ${dynamic.primary}. Attempting native bypass...');
-      try {
-        const channel = MethodChannel('com.echoran.pureweather/wallpaper');
-        final int? colorInt = await channel.invokeMethod<int>('getWallpaperPrimaryColor');
-        if (colorInt != null) {
-          final color = Color(colorInt);
-          debugPrint('[DynamicColor] Native bypass successful. Extracted color: $color');
-          return ColorScheme.fromSeed(
-            seedColor: color,
-            brightness: Brightness.light,
-          );
-        }
-      } catch (e) {
-        debugPrint('[DynamicColor] Native bypass failed: $e');
+    // 直接尝试获取壁纸颜色，绕过系统限制
+    debugPrint('[DynamicColor] Attempting native bypass to get wallpaper color...');
+    try {
+      const channel = MethodChannel('com.echoran.pureweather/wallpaper');
+      final int? colorInt = await channel.invokeMethod<int>('getWallpaperPrimaryColor');
+      if (colorInt != null) {
+        final color = Color(colorInt);
+        debugPrint('[DynamicColor] Native bypass successful. Extracted color: $color');
+        return ColorScheme.fromSeed(
+          seedColor: color,
+          brightness: Brightness.light,
+        );
       }
+    } catch (e) {
+      debugPrint('[DynamicColor] Native bypass failed: $e');
     }
     return null;
   }
