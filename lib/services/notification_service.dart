@@ -48,18 +48,19 @@ class NotificationService {
     }
     if (_isInitialized) return;
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
+    const linuxSettings = LinuxInitializationSettings(defaultActionName: 'Open');
 
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
+      macOS: iosSettings,
+      linux: linuxSettings,
     );
 
     await notifications.initialize(
@@ -78,20 +79,22 @@ class NotificationService {
   }
 
   /// 请求通知权限
-  ///
-  /// 返回是否获得权限
   Future<bool> requestNotificationPermission() async {
-    if (kIsWeb) {
-      return false;
-    }
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final status = await Permission.notification.status;
-      if (status.isGranted) {
-        return true;
-      }
+    if (kIsWeb) return false;
 
-      final result = await Permission.notification.request();
-      return result.isGranted;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final plugin = notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      
+      // 请求精准闹钟权限（Android 12+）
+      final canScheduleExact = await plugin?.requestExactAlarmsPermission() ?? false;
+      debugPrint('[Notification] Can schedule exact alarms: $canScheduleExact');
+      
+      // 请求通知权限（Android 13+）
+      final isGranted = await plugin?.requestNotificationsPermission() ?? false;
+      return isGranted;
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       final result = await notifications
           .resolvePlatformSpecificImplementation<
@@ -100,7 +103,7 @@ class NotificationService {
           ?.requestPermissions(alert: true, badge: true, sound: true);
       return result ?? false;
     }
-    return false;
+    return true;
   }
 
   /// 检查通知权限

@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -19,10 +22,21 @@ class ScheduledBroadcastService {
   factory ScheduledBroadcastService() => _instance;
 
   /// 私有构造函数
-  ScheduledBroadcastService._internal();
+  ScheduledBroadcastService._internal() {
+    _startPulseTimer();
+  }
 
   /// 天气服务实例
   final QWeatherService _weatherService = QWeatherService();
+
+  /// 定时器，用于桌面端补偿
+  Timer? _pulseTimer;
+
+  /// 最后一次触发检查的小时，避免重复触发
+  int _lastCheckHour = -1;
+
+  /// 缓存当前设置，以便在准点检查时使用
+  ScheduledBroadcastSettings? _currentSettings;
 
   /// 获取通知插件实例
   FlutterLocalNotificationsPlugin get _notifications =>
@@ -57,9 +71,18 @@ class ScheduledBroadcastService {
 
     try {
       tz_data.initializeTimeZones();
-      final String timeZoneName = 'Asia/Shanghai';
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
-      debugPrint('[ScheduledBroadcast] Timezone initialized: $timeZoneName');
+      // 动态获取系统当前时区，并处理可能的平台名称不匹配问题
+      final now = DateTime.now();
+      final String timeZoneName = now.timeZoneName;
+      try {
+        tz.setLocalLocation(tz.getLocation(timeZoneName));
+        debugPrint('[ScheduledBroadcast] Timezone initialized: $timeZoneName');
+      } catch (_) {
+        // 如果系统时区名无法被 timezone 库识别，默认回退到上海
+        const fallback = 'Asia/Shanghai';
+        tz.setLocalLocation(tz.getLocation(fallback));
+        debugPrint('[ScheduledBroadcast] Timezone fallback to: $fallback');
+      }
     } catch (e) {
       debugPrint('[ScheduledBroadcast] Error initializing timezone: $e');
       // Fallback to UTC if local fails, or handle appropriately
@@ -94,6 +117,7 @@ class ScheduledBroadcastService {
       return;
     }
     await initialize();
+    _currentSettings = settings; // 更新本地缓存的设置，供 pulse timer 使用
     await cancelAllScheduledBroadcasts();
 
     debugPrint('[ScheduledBroadcast] scheduleBroadcasts called');
@@ -117,6 +141,9 @@ class ScheduledBroadcastService {
       return;
     }
 
+    // 检查电池优化
+    await _checkBatteryOptimization();
+
     if (settings.morningTime.enabled) {
       await _scheduleMorningBroadcast(settings);
     } else {
@@ -139,6 +166,21 @@ class ScheduledBroadcastService {
     if (kIsWeb) {
       return;
     }
+    
+    // 提前获取天气数据，将内容“硬编码”到系统调度中
+    String body = '点击查看今日天气详情';
+    try {
+      final weatherData = await _fetchDefaultCityWeather();
+      body = _buildMorningContent(weatherData, settings);
+      if (body.isEmpty) body = '今日天气：${weatherData.current.text}';
+      
+      // 如果是用缓存数据，加上标记
+      final isFromNetwork = await _isDataFresh(weatherData); 
+      if (!isFromNetwork) body += ' (来自本地缓存)';
+    } catch (e) {
+      debugPrint('[ScheduledBroadcast] Morning pre-fetch failed: $e');
+    }
+
     final scheduledDate = _nextInstanceOfTime(
       settings.morningTime.hour,
       settings.morningTime.minute,
@@ -153,7 +195,7 @@ class ScheduledBroadcastService {
     await _notifications.zonedSchedule(
       _morningNotificationId,
       '早安天气',
-      '点击查看今日天气详情',
+      body,
       scheduledDate,
       await _buildNotificationDetails(),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -190,6 +232,20 @@ class ScheduledBroadcastService {
     if (kIsWeb) {
       return;
     }
+
+    // 提前获取天气数据
+    String body = '点击查看明日天气详情';
+    try {
+      final weatherData = await _fetchDefaultCityWeather();
+      body = _buildEveningContent(weatherData, settings);
+      if (body.isEmpty) body = '晚间预报：${weatherData.current.text}';
+      
+      final isFromNetwork = await _isDataFresh(weatherData);
+      if (!isFromNetwork) body += ' (来自本地缓存)';
+    } catch (e) {
+      debugPrint('[ScheduledBroadcast] Evening pre-fetch failed: $e');
+    }
+
     final scheduledDate = _nextInstanceOfTime(
       settings.eveningTime.hour,
       settings.eveningTime.minute,
@@ -204,7 +260,7 @@ class ScheduledBroadcastService {
     await _notifications.zonedSchedule(
       _eveningNotificationId,
       '晚间天气',
-      '点击查看明日天气详情',
+      body,
       scheduledDate,
       await _buildNotificationDetails(),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -214,20 +270,25 @@ class ScheduledBroadcastService {
       payload: 'evening_broadcast',
     );
 
-    final pendingNotifications = await _notifications
-        .pendingNotificationRequests();
-    debugPrint(
-      '[ScheduledBroadcast] Pending notifications: ${pendingNotifications.length}',
-    );
-    for (final notification in pendingNotifications) {
-      debugPrint(
-        '[ScheduledBroadcast] Pending: id=${notification.id}, title=${notification.title}',
-      );
-    }
-
     debugPrint(
       '[ScheduledBroadcast] Evening broadcast scheduled for ${settings.eveningTime.formattedTime}',
     );
+  }
+
+  /// 检查数据是否为刚刚获取（非遗留缓存）
+  Future<bool> _isDataFresh(WeatherData data) async {
+    return DateTime.now().difference(data.lastUpdated).inMinutes < 5;
+  }
+
+  /// 检查电池优化（Android）
+  Future<void> _checkBatteryOptimization() async {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final status = await Permission.ignoreBatteryOptimizations.status;
+      debugPrint('[ScheduledBroadcast] Battery optimization status: $status');
+      if (status.isDenied) {
+        debugPrint('[ScheduledBroadcast] App is battery restricted, notifications may be delayed.');
+      }
+    }
   }
 
   /// 计算下一个指定时间的实例
@@ -293,6 +354,44 @@ class ScheduledBroadcastService {
     }
     await _notifications.cancel(_morningNotificationId);
     await _notifications.cancel(_eveningNotificationId);
+    _lastCheckHour = -1; // 重置检查标记
+  }
+
+  /// 启动前台检查定时器
+  void _startPulseTimer() {
+    // 每分钟检查一次当前时间是否匹配播报时间
+    _pulseTimer?.cancel();
+    _pulseTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _checkAndTriggerBroadcasts();
+    });
+  }
+
+  /// 检查并触发播报（前台/桌面端补偿）
+  Future<void> _checkAndTriggerBroadcasts() async {
+    final settings = _currentSettings;
+    if (settings == null || !settings.enabled) return;
+
+    final now = DateTime.now();
+    // 避免在同一个小时内重复推送
+    if (now.hour == _lastCheckHour) return;
+
+    // 检查早上播报
+    if (settings.morningTime.enabled &&
+        now.hour == settings.morningTime.hour &&
+        now.minute >= settings.morningTime.minute) {
+      debugPrint('[ScheduledBroadcast] Pulse match: triggering morning broadcast');
+      _lastCheckHour = now.hour;
+      await sendMorningBroadcast(settings);
+    }
+
+    // 检查晚上播报
+    if (settings.eveningTime.enabled &&
+        now.hour == settings.eveningTime.hour &&
+        now.minute >= settings.eveningTime.minute) {
+      debugPrint('[ScheduledBroadcast] Pulse match: triggering evening broadcast');
+      _lastCheckHour = now.hour;
+      await sendEveningBroadcast(settings);
+    }
   }
 
   /// 发送早上播报
@@ -304,7 +403,12 @@ class ScheduledBroadcastService {
       final weatherData = await _fetchDefaultCityWeather();
 
       final title = '早上好 ☀️ ${weatherData.location.name}';
-      final body = _buildMorningContent(weatherData, settings);
+      String body = _buildMorningContent(weatherData, settings);
+      
+      // 如果数据较旧，增加缓存标记
+      if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours > 1) {
+        body += '\n(来自本地缓存)';
+      }
       debugPrint('[ScheduledBroadcast] Morning broadcast content: $body');
 
       await notificationServiceProvider.showWeatherAlert(
@@ -333,7 +437,12 @@ class ScheduledBroadcastService {
       final weatherData = await _fetchDefaultCityWeather();
 
       final title = '晚上好 🌙 ${weatherData.location.name}';
-      final body = _buildEveningContent(weatherData, settings);
+      String body = _buildEveningContent(weatherData, settings);
+      
+      // 如果数据较旧，增加缓存标记
+      if (weatherData.lastUpdated.difference(DateTime.now()).abs().inHours > 1) {
+        body += '\n(来自本地缓存)';
+      }
       debugPrint('[ScheduledBroadcast] Evening broadcast content: $body');
 
       await notificationServiceProvider.showWeatherAlert(
@@ -385,15 +494,50 @@ class ScheduledBroadcastService {
     );
 
     try {
-      final weatherData = await _weatherService.getFullWeatherData(
-        defaultCity.id,
+      // 尝试获取最新的天气数据（带重试机制）
+      final weatherData = await _fetchWithRetry(() => _weatherService.getFullWeatherData(
+        defaultCity!.id,
         defaultCity,
-      );
+      ));
       debugPrint('[ScheduledBroadcast] Weather data retrieved successfully');
       return weatherData;
     } catch (e) {
-      debugPrint('[ScheduledBroadcast] Failed to get weather data: $e');
+      debugPrint('[ScheduledBroadcast] Network fetch failed, trying cache: $e');
+      // 网络失败，尝试从本地缓存读取
+      try {
+        final key = 'weather_cache_${defaultCity.id}';
+        final jsonString = prefs.getString(key);
+        if (jsonString != null) {
+          final data = WeatherData.fromJson(jsonDecode(jsonString));
+          debugPrint('[ScheduledBroadcast] Fallback to cache for ${defaultCity.name}');
+          return data;
+        }
+      } catch (cacheError) {
+        debugPrint('[ScheduledBroadcast] Cache read failed: $cacheError');
+      }
+      
       throw Exception('天气数据获取失败: $e');
+    }
+  }
+
+  /// 带重试机制的请求封装
+  Future<T> _fetchWithRetry<T>(Future<T> Function() task, {int retries = 3}) async {
+    int attempts = 0;
+    while (true) {
+      try {
+        attempts++;
+        return await task();
+      } catch (e) {
+        if (attempts >= retries) rethrow;
+        final isNetworkError = e is DioException && 
+            (e.type == DioExceptionType.connectionError || 
+             e.type == DioExceptionType.connectionTimeout);
+        
+        if (!isNetworkError) rethrow; // 只有网络错误才重试
+        
+        debugPrint('[ScheduledBroadcast] Retry attempt $attempts after error: $e');
+        await Future.delayed(Duration(seconds: attempts * 2));
+      }
     }
   }
 

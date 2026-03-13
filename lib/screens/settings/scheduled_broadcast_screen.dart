@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../providers/scheduled_broadcast_provider.dart';
 import '../../services/scheduled_broadcast_service.dart';
+import '../../services/notification_service.dart';
 
 class ScheduledBroadcastScreen extends ConsumerWidget {
   const ScheduledBroadcastScreen({super.key});
@@ -390,15 +392,12 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
   }
 
   Future<bool> _checkAndRequestPermissions(BuildContext context) async {
-    final notificationPermission = await Permission.notification.status;
-    if (!notificationPermission.isGranted) {
-      final result = await Permission.notification.request();
-      if (!result.isGranted) {
-        if (context.mounted) {
-          _showPermissionDeniedDialog(context, '通知权限', '定时播报需要通知权限才能推送天气信息');
-        }
-        return false;
+    final notificationGranted = await notificationServiceProvider.requestNotificationPermission();
+    if (!notificationGranted) {
+      if (context.mounted) {
+        _showPermissionDeniedDialog(context, '通知权限', '定时播报需要通知权限才能推送天气信息');
       }
+      return false;
     }
 
     final locationPermission = await Permission.location.status;
@@ -422,9 +421,43 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
         await openAppSettings();
         return false;
       }
+      
+      // 检查电池优化
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final batteryStatus = await Permission.ignoreBatteryOptimizations.status;
+        if (!batteryStatus.isGranted) {
+          final shouldRequest = await _showBatteryOptimizationDialog(context);
+          if (shouldRequest == true) {
+            await Permission.ignoreBatteryOptimizations.request();
+          }
+        }
+      }
     }
 
     return true;
+  }
+
+  Future<bool?> _showBatteryOptimizationDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.battery_saver_outlined),
+        title: const Text('改善后台稳定性'),
+        content: const Text(
+          'Android 系统可能会为了省电而延迟后台通知。\n\n建议将应用设为"不限制"电池使用，以确保天气播报准时送达。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('以后再说'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('去设置'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool?> _showScheduleExactAlarmDialog(BuildContext context) {

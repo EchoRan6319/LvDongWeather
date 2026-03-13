@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/scheduled_broadcast_service.dart';
 
 /// 定时时间类，用于表示定时播报的时间设置
 class ScheduledTime {
@@ -183,6 +184,8 @@ class ScheduledBroadcastNotifier
       try {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         state = ScheduledBroadcastSettings.fromJson(json);
+        // 初始化时也同步一次设置
+        scheduledBroadcastServiceProvider.scheduleBroadcasts(state);
       } catch (_) {}
     }
   }
@@ -191,6 +194,8 @@ class ScheduledBroadcastNotifier
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, jsonEncode(state.toJson()));
+    // 同步到服务层，以便 Windows 补偿逻辑使用最新的设置
+    await scheduledBroadcastServiceProvider.scheduleBroadcasts(state);
   }
 
   /// 设置是否启用定时播报

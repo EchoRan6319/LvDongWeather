@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/weather_models.dart';
 import '../services/qweather_service.dart';
@@ -141,6 +143,12 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         airQuality: airQuality,
         minuteRain: minuteRain,
       );
+
+      // 自动持久化缓存数据，供定时播报回退使用
+      _saveWeatherCache(location.id, weatherData);
+      
+      // 清理孤儿数据（异步执行，不阻塞主流程）
+      _cleanupWeatherCache();
       
       // 检查并发送天气预警通知
       await _checkAndSendAlertNotifications(weatherData.alerts);
@@ -207,6 +215,46 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     final location = _ref.read(defaultCityProvider);
     if (location != null) {
       await loadWeather(location);
+    }
+  }
+
+  /// 持久化天气数据缓存
+  Future<void> _saveWeatherCache(String locationId, WeatherData data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'weather_cache_$locationId';
+      await prefs.setString(key, jsonEncode(data.toJson()));
+      debugPrint('[WeatherCache] Saved cache for $locationId');
+    } catch (e) {
+      debugPrint('[WeatherCache] Save failed: $e');
+    }
+  }
+
+  /// 清理已删除城市的孤儿缓存
+  Future<void> _cleanupWeatherCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys();
+      
+      // 获取当前所有保存的城市ID
+      final citiesJson = prefs.getString('saved_cities');
+      if (citiesJson == null) return;
+      
+      final List<dynamic> decoded = jsonDecode(citiesJson);
+      final currentCityIds = decoded.map((e) => e['id'].toString()).toSet();
+      
+      // 扫描并删除孤儿缓存
+      for (final key in keys) {
+        if (key.startsWith('weather_cache_')) {
+          final cityId = key.replaceFirst('weather_cache_', '');
+          if (!currentCityIds.contains(cityId)) {
+            await prefs.remove(key);
+            debugPrint('[WeatherCache] Cleaned up orphaned cache: $key');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[WeatherCache] Cleanup failed: $e');
     }
   }
 

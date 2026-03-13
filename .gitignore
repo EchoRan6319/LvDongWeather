@@ -53,3 +53,10 @@ android/key.properties
 PureWaether
 *.jks
 *.keystore
+build_error_utf8.txt
+.gitignore
+build_error.txt
+analysis_output_utf8.txt
+analysis_output.txt
+build_error_bg_utf8.txt
+build_error_bg.txt
