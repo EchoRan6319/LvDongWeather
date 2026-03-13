@@ -29,6 +29,8 @@ class AppSettings {
   final LocationAccuracyLevel locationAccuracyLevel;
   /// 天气卡片顺序
   final List<String> weatherCardOrder;
+  /// 风速单位 (ms, kmph, mph)
+  final String windSpeedUnit;
 
   /// 构造函数
   const AppSettings({
@@ -46,6 +48,7 @@ class AppSettings {
       'airQuality',
       'details',
     ],
+    this.windSpeedUnit = 'ms',
   });
 
   /// 复制并更新设置
@@ -69,6 +72,7 @@ class AppSettings {
     bool? showAIAssistant,
     LocationAccuracyLevel? locationAccuracyLevel,
     List<String>? weatherCardOrder,
+    String? windSpeedUnit,
   }) {
     return AppSettings(
       predictiveBackEnabled:
@@ -82,6 +86,7 @@ class AppSettings {
       locationAccuracyLevel:
           locationAccuracyLevel ?? this.locationAccuracyLevel,
       weatherCardOrder: weatherCardOrder ?? this.weatherCardOrder,
+      windSpeedUnit: windSpeedUnit ?? this.windSpeedUnit,
     );
   }
 }
@@ -108,6 +113,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static const String _keyLocationAccuracyLevel = 'location_accuracy_level';
   /// 天气卡片顺序设置键
   static const String _keyWeatherCardOrder = 'weather_card_order';
+  /// 风速单位设置键
+  static const String _keyWindSpeedUnit = 'wind_speed_unit';
 
   /// 构造函数
   SettingsNotifier() : super(const AppSettings()) {
@@ -160,6 +167,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       showAIAssistant: prefs.getBool(_keyShowAIAssistant) ?? true,
       locationAccuracyLevel: accuracyLevel,
       weatherCardOrder: validatedOrder,
+      windSpeedUnit: prefs.getString(_keyWindSpeedUnit) ?? 'ms',
     );
   }
 
@@ -257,6 +265,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_keyWeatherCardOrder, validatedOrder);
     state = state.copyWith(weatherCardOrder: validatedOrder);
+  }
+
+  /// 设置风速单位
+  /// 
+  /// [value]: 风速单位
+  Future<void> setWindSpeedUnit(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyWindSpeedUnit, value);
+    state = state.copyWith(windSpeedUnit: value);
   }
 }
 

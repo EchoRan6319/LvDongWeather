@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/weather_models.dart';
+import '../generated/l10n/app_localizations.dart';
 
 /// 空气质量卡片组件
 /// 
@@ -32,7 +33,7 @@ class AirQualityCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '空气质量',
+                  AppLocalizations.of(context).air_quality,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -50,7 +51,7 @@ class AirQualityCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        airQuality.category,
+                        _getLocalizedAqiCategory(context, airQuality.category),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w500,
                           color: _getAqiColor(context),
@@ -58,7 +59,7 @@ class AirQualityCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '主要污染物: ${_getMainPollutant()}',
+                        '${AppLocalizations.of(context).main_pollutant}: ${_getMainPollutant()}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -215,5 +216,32 @@ class AirQualityCard extends StatelessWidget {
     });
 
     return maxKey;
+  }
+
+  /// 获取本地化的空气质量等级
+  String _getLocalizedAqiCategory(BuildContext context, String category) {
+    final l10n = AppLocalizations.of(context);
+    switch (category) {
+      case '优':
+      case 'Excellent':
+        return l10n.aqi_excellent;
+      case '良':
+      case 'Good':
+        return l10n.aqi_good;
+      case '轻度污染':
+      case 'Lightly Polluted':
+        return l10n.aqi_lightly_polluted;
+      case '中度污染':
+      case 'Moderately Polluted':
+        return l10n.aqi_moderately_polluted;
+      case '重度污染':
+      case 'Heavily Polluted':
+        return l10n.aqi_heavily_polluted;
+      case '严重污染':
+      case 'Severely Polluted':
+        return l10n.aqi_severely_polluted;
+      default:
+        return category;
+    }
   }
 }

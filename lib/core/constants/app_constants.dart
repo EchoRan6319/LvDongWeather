@@ -148,4 +148,48 @@ class WeatherCode {
     }
     return celsius.round().toString();
   }
+
+  /// 风速单位转换
+  /// 
+  /// [kmhSpeed] 公里/小时风速字符串
+  /// [unit] 目标单位 (ms, kmph, mph)
+  /// 返回转换后的风速字符串
+  static String convertWindSpeed(
+    String kmhSpeed, {
+    String unit = 'kmph',
+  }) {
+    final speed = double.tryParse(kmhSpeed);
+    if (speed == null) return kmhSpeed;
+
+    switch (unit) {
+      case 'ms':
+        // km/h to m/s: divide by 3.6
+        return (speed / 3.6).toStringAsFixed(1);
+      case 'mph':
+        // km/h to mph: multiply by 0.621371
+        return (speed * 0.621371).toStringAsFixed(1);
+      case 'kmph':
+      default:
+        return speed.round().toString();
+    }
+  }
+
+  /// 能见度单位转换
+  /// 
+  /// [kmVis] 公里能见度字符串
+  /// [useImperial] 是否使用英制单位 (英里)
+  /// 返回转换后的能见度字符串
+  static String convertVisibility(
+    String kmVis, {
+    bool useImperial = false,
+  }) {
+    final vis = double.tryParse(kmVis);
+    if (vis == null) return kmVis;
+
+    if (useImperial) {
+      // km to miles: multiply by 0.621371
+      return (vis * 0.621371).toStringAsFixed(1);
+    }
+    return vis.round().toString();
+  }
 }

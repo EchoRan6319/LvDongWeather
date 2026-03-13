@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'generated/l10n/app_localizations.dart';
+import 'providers/language_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
@@ -117,18 +119,24 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               debugPrint('[DynamicColor] Using seed color: $seedColor');
             }
 
+            // 保存当前主题色到 SharedPreferences，供后台通知使用
+            SharedPreferences.getInstance().then((prefs) {
+              prefs.setInt('notification_accent_color', (lightColorScheme.primary.toARGB32()));
+            });
+
+            final languageNotifier = ref.read(languageProvider.notifier);
+
             return MaterialApp(
               title: '轻氧天气',
               debugShowCheckedModeBanner: false,
+              locale: languageNotifier.locale,
               localizationsDelegates: const [
+                AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              supportedLocales: const [
-                Locale('zh', 'CN'),
-                Locale('en', 'US'),
-              ],
+              supportedLocales: AppLocalizations.supportedLocales,
               theme: AppTheme.createTheme(
                 colorScheme: lightColorScheme,
                 useMaterial3: themeSettings.useMaterial3,

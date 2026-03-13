@@ -426,8 +426,10 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
       if (defaultTargetPlatform == TargetPlatform.android) {
         final batteryStatus = await Permission.ignoreBatteryOptimizations.status;
         if (!batteryStatus.isGranted) {
+          if (!context.mounted) return false;
           final shouldRequest = await _showBatteryOptimizationDialog(context);
           if (shouldRequest == true) {
+            if (!context.mounted) return false;
             await Permission.ignoreBatteryOptimizations.request();
           }
         }

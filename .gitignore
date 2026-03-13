@@ -50,16 +50,14 @@ api_keys.dart
 android/local.properties
 
 android/key.properties
+# Temporary and generated files
+*.txt
+*.salive
+*.log
+analyzer_output*
+build_error*
+temp_analyze*
 PureWaether
-*.jks
-*.keystore
-build_error_utf8.txt
-.gitignore
-build_error.txt
-analysis_output_utf8.txt
-analysis_output.txt
-build_error_bg_utf8.txt
-build_error_bg.txt
-build_error_coloros_utf8.txt
-build_error_coloros.txt
-android/.kotlin/sessions/kotlin-compiler-15060738774125324990.salive
+
+# Gradle/Kotlin sessions
+android/.kotlin/

@@ -15,6 +15,9 @@ import '../../widgets/app_icon.dart';
 import '../../core/constants/app_constants.dart';
 import 'scheduled_broadcast_screen.dart';
 import 'card_order_screen.dart';
+import 'language_settings_screen.dart';
+import '../../providers/language_provider.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -52,21 +55,21 @@ class SettingsScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           _SettingsSection(
-                            title: '个性化',
+                            title: AppLocalizations.of(context).personalization,
                             icon: Icons.palette_outlined,
                             children: [
                               _SettingsTile(
                                 icon: Icons.brightness_6_outlined,
-                                title: '主题模式',
-                                subtitle: _getThemeModeName(themeSettings.themeMode),
+                                title: AppLocalizations.of(context).theme_mode,
+                                subtitle: _getThemeModeName(context, themeSettings.themeMode),
 
                                 onTap: () =>
                                     _showThemeModeDialog(context, ref, themeSettings),
                               ),
                               _SettingsTile(
                                 icon: Icons.color_lens_outlined,
-                                title: '主题颜色',
-                                subtitle: themeSettings.useDynamicColor ? '跟随壁纸' : '自定义颜色',
+                                title: AppLocalizations.of(context).theme_color,
+                                subtitle: themeSettings.useDynamicColor ? AppLocalizations.of(context).wallpaper_color : AppLocalizations.of(context).custom_color,
                                 trailing: _ColorPreview(
                                   color:
                                       themeSettings.seedColor ??
@@ -77,8 +80,8 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                               _SettingsSwitch(
                                 icon: Icons.wallpaper_outlined,
-                                title: '动态取色',
-                                subtitle: '根据壁纸自动生成主题色（ColorOS设备建议关闭此选项，否则会导致应用配色异常）',
+                                title: AppLocalizations.of(context).dynamic_color,
+                                subtitle: AppLocalizations.of(context).dynamic_color_desc,
                                 value: themeSettings.useDynamicColor,
                                 onChanged: (value) {
                                   ref.read(themeProvider.notifier).setUseDynamicColor(value);
@@ -88,13 +91,13 @@ class SettingsScreen extends ConsumerWidget {
                             ],
                           ),
                           _SettingsSection(
-                            title: '通知',
+                            title: AppLocalizations.of(context).notification,
                             icon: Icons.notifications_outlined,
                             children: [
                               _SettingsSwitch(
                                 icon: Icons.warning_amber_outlined,
-                                title: '天气预警通知',
-                                subtitle: '接收极端天气预警推送',
+                                title: AppLocalizations.of(context).weather_alert,
+                                subtitle: AppLocalizations.of(context).weather_alert_desc,
                                 value: appSettings.notificationsEnabled,
                                 onChanged: (value) async {
                                   if (value) {
@@ -114,20 +117,20 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                               _SettingsTile(
                                 icon: Icons.schedule_outlined,
-                                title: '定时播报',
-                                subtitle: '设置每日定时推送天气信息',
+                                title: AppLocalizations.of(context).scheduled_broadcast,
+                                subtitle: AppLocalizations.of(context).scheduled_broadcast_desc,
                                 onTap: () => ScheduledBroadcastScreen.show(context, ref),
                               ),
                             ],
                           ),
                           _SettingsSection(
-                            title: '显示',
+                            title: AppLocalizations.of(context).display,
                             icon: Icons.visibility_outlined,
                             children: [
                               _SettingsSwitch(
                                 icon: Icons.psychology_outlined,
-                                title: '显示天气助手',
-                                subtitle: '在底部导航栏显示天气助手页面',
+                                title: AppLocalizations.of(context).show_ai_assistant,
+                                subtitle: AppLocalizations.of(context).show_ai_assistant_desc,
                                 value: appSettings.showAIAssistant,
                                 onChanged: (value) {
                                   ref
@@ -135,42 +138,62 @@ class SettingsScreen extends ConsumerWidget {
                                       .setShowAIAssistant(value);
                                 },
                               ),
-                              _SettingsTile(
-                                icon: Icons.device_thermostat_outlined,
-                                title: '温度单位',
-                                subtitle: appSettings.temperatureUnit == 'celsius'
-                                    ? '摄氏度 (°C)'
-                                    : '华氏度 (°F)',
-                                onTap: () =>
-                                    _showTemperatureUnitDialog(context, ref, appSettings),
-                              ),
+                                _SettingsTile(
+                                  icon: Icons.device_thermostat_outlined,
+                                  title: AppLocalizations.of(context).temperature_unit,
+                                  subtitle: appSettings.temperatureUnit == 'celsius'
+                                      ? '摄氏度 (°C)'
+                                      : '华氏度 (°F)',
+                                  onTap: () =>
+                                      _showTemperatureUnitDialog(context, ref, appSettings),
+                                ),
+                                _SettingsTile(
+                                  icon: Icons.speed_outlined,
+                                  title: AppLocalizations.of(context).wind_speed_unit,
+                                  subtitle: _getWindSpeedUnitName(context, appSettings.windSpeedUnit),
+                                  onTap: () =>
+                                      _showWindSpeedUnitDialog(context, ref, appSettings),
+                                ),
                               _SettingsTile(
                                 icon: Icons.location_on_outlined,
-                                title: '位置显示精度',
+                                title: AppLocalizations.of(context).location_accuracy,
                                 subtitle:
                                     appSettings.locationAccuracyLevel ==
                                         LocationAccuracyLevel.street
-                                    ? '街道级别'
-                                    : '区县级别',
+                                    ? AppLocalizations.of(context).location_accuracy_street
+                                    : AppLocalizations.of(context).location_accuracy_district,
                                 onTap: () =>
                                     _showLocationAccuracyDialog(context, ref, appSettings),
                               ),
-                              _SettingsTile(
-                                icon: Icons.sort_rounded,
-                                title: '天气卡片排序',
-                                subtitle: '自定义天气详情页卡片显示顺序',
-                                onTap: () => CardOrderScreen.show(context),
-                              ),
+                                _SettingsTile(
+                                  icon: Icons.language_outlined,
+                                  title: AppLocalizations.of(context).language,
+                                  subtitle: _getLanguageName(context, ref.watch(languageProvider)),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const LanguageSettingsScreen(),
+                                    ),
+                                  ),
+                                ),
+                                _SettingsTile(
+                                  icon: Icons.sort_rounded,
+                                  title: AppLocalizations.of(context).card_order,
+                                  subtitle: AppLocalizations.of(context).card_order_desc,
+                                  onTap: () => CardOrderScreen.show(context),
+                                ),
                             ],
                           ),
                           _SettingsSection(
-                            title: '数据',
+                            title: AppLocalizations.of(context).data,
                             icon: Icons.sync_outlined,
                             children: [
                               _SettingsSwitch(
                                 icon: Icons.autorenew_outlined,
-                                title: '自动刷新',
-                                subtitle: '每 ${appSettings.refreshInterval} 分钟自动更新',
+                                title: AppLocalizations.of(context).auto_refresh,
+                                subtitle: AppLocalizations.of(context).auto_refresh_desc(
+                                  appSettings.refreshInterval.toString(),
+                                ),
                                 value: appSettings.autoRefreshEnabled,
                                 onChanged: (value) {
                                   ref
@@ -180,21 +203,21 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                               _SettingsTile(
                                 icon: Icons.timer_outlined,
-                                title: '刷新间隔',
-                                subtitle: '${appSettings.refreshInterval} 分钟',
+                                title: AppLocalizations.of(context).refresh_interval,
+                                subtitle: '${appSettings.refreshInterval} ${AppLocalizations.of(context).minutes}',
                                 onTap: () =>
                                     _showRefreshIntervalDialog(context, ref, appSettings),
                               ),
                             ],
                           ),
                           _SettingsSection(
-                            title: '高级',
+                            title: AppLocalizations.of(context).advanced,
                             icon: Icons.tune_outlined,
                             children: [
                               _SettingsSwitch(
                                 icon: Icons.swipe_outlined,
-                                title: '预测式返回手势',
-                                subtitle: '返回时显示预览动画（Android 14+）',
+                                title: AppLocalizations.of(context).predictive_back,
+                                subtitle: AppLocalizations.of(context).predictive_back_desc,
                                 value: appSettings.predictiveBackEnabled,
                                 onChanged: (value) {
                                   ref
@@ -205,22 +228,22 @@ class SettingsScreen extends ConsumerWidget {
                             ],
                           ),
                           _SettingsSection(
-                            title: '关于',
+                            title: AppLocalizations.of(context).about,
                             icon: Icons.info_outline,
                             children: [
                               _SettingsTile(
                                 icon: Icons.apps_outlined,
-                                title: '关于轻氧天气',
+                                title: AppLocalizations.of(context).about_app,
                                 onTap: () => _showAboutDialog(context),
                               ),
                               _SettingsTile(
                                 icon: Icons.privacy_tip_outlined,
-                                title: '隐私政策',
+                                title: AppLocalizations.of(context).privacy_policy,
                                 onTap: () => _showPrivacyPolicy(context),
                               ),
                               _SettingsTile(
                                 icon: Icons.description_outlined,
-                                title: '用户协议',
+                                title: AppLocalizations.of(context).user_agreement,
                                 onTap: () => _showUserAgreement(context),
                               ),
                             ],
@@ -237,21 +260,48 @@ class SettingsScreen extends ConsumerWidget {
         );
 
         return Scaffold(
-          appBar: AppBar(title: const Text('设置')),
+          appBar: AppBar(title: Text(AppLocalizations.of(context).settings)),
           body: scaffoldBody,
         );
       },
     );
   }
 
-  String _getThemeModeName(AppThemeMode mode) {
+  String _getThemeModeName(BuildContext context, AppThemeMode mode) {
+    final l10n = AppLocalizations.of(context);
     switch (mode) {
       case AppThemeMode.system:
-        return '跟随系统';
+        return l10n.follow_system;
       case AppThemeMode.light:
-        return '浅色模式';
+        return l10n.light_mode;
       case AppThemeMode.dark:
-        return '深色模式';
+        return l10n.dark_mode;
+    }
+  }
+
+  String _getLanguageName(BuildContext context, LanguageMode mode) {
+    final l10n = AppLocalizations.of(context);
+    switch (mode) {
+      case LanguageMode.system:
+        return l10n.follow_system;
+      case LanguageMode.zh:
+        return l10n.chinese;
+      case LanguageMode.en:
+        return l10n.english;
+    }
+  }
+
+  String _getWindSpeedUnitName(BuildContext context, String unit) {
+    final l10n = AppLocalizations.of(context);
+    switch (unit) {
+      case 'ms':
+        return l10n.wind_unit_ms;
+      case 'kmph':
+        return l10n.wind_unit_kmph;
+      case 'mph':
+        return l10n.wind_unit_mph;
+      default:
+        return unit;
     }
   }
 
@@ -269,11 +319,40 @@ class SettingsScreen extends ConsumerWidget {
         title: '主题模式',
         items: AppThemeMode.values.map(
           (mode) => _SelectionItem(
-            title: _getThemeModeName(mode),
+            title: _getThemeModeName(context, mode),
             icon: _getThemeModeIcon(mode),
             isSelected: settings.themeMode == mode,
             onTap: () {
               ref.read(themeProvider.notifier).setThemeMode(mode);
+              Navigator.pop(ctx);
+            },
+          ),
+        ),
+        onClose: () => Navigator.pop(ctx),
+      ),
+    );
+  }
+
+  void _showWindSpeedUnitDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) {
+    const units = ['ms', 'kmph', 'mph'];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _SelectionBottomSheet(
+        title: AppLocalizations.of(context).wind_speed_unit,
+        items: units.map(
+          (unit) => _SelectionItem(
+            title: _getWindSpeedUnitName(context, unit),
+            icon: Icons.speed_outlined,
+            isSelected: settings.windSpeedUnit == unit,
+            onTap: () {
+              ref.read(settingsProvider.notifier).setWindSpeedUnit(unit);
               Navigator.pop(ctx);
             },
           ),
@@ -818,10 +897,10 @@ class SettingsScreen extends ConsumerWidget {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _SelectionBottomSheet(
-        title: '刷新间隔',
+        title: AppLocalizations.of(context).refresh_interval,
         items: intervals.map(
           (interval) => _SelectionItem(
-            title: '$interval 分钟',
+            title: '$interval ${AppLocalizations.of(context).minutes}',
             icon: Icons.timer_outlined,
             isSelected: settings.refreshInterval == interval,
             onTap: () {
@@ -840,6 +919,7 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     AppSettings settings,
   ) {
+    final l10n = AppLocalizations.of(context);
     final units = [
       ('celsius', '摄氏度', '°C', '温度显示为摄氏度', Icons.device_thermostat_outlined),
       ('fahrenheit', '华氏度', '°F', '温度显示为华氏度', Icons.thermostat_outlined),
@@ -851,7 +931,7 @@ class SettingsScreen extends ConsumerWidget {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _SelectionBottomSheet(
-        title: '温度单位',
+        title: l10n.temperature_unit,
         items: units.map(
           (unit) => _SelectionItem(
             title: '${unit.$2} (${unit.$3})',
@@ -895,7 +975,7 @@ class SettingsScreen extends ConsumerWidget {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _SelectionBottomSheet(
-        title: '位置显示',
+        title: AppLocalizations.of(context).location_accuracy,
         items: options.map(
           (option) => _SelectionItem(
             title: option.$2,
@@ -932,7 +1012,7 @@ class SettingsScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               openAppSettings();
             },
-            child: const Text('去设置'),
+            child: Text(AppLocalizations.of(context).go_to_settings),
           ),
         ],
       ),
@@ -950,13 +1030,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showPrivacyPolicy(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => const _ContentBottomSheet(
-        title: '隐私政策',
+      builder: (ctx) => _ContentBottomSheet(
+        title: l10n.privacy_policy,
         content: [
           '生效日期：2026年2月16日',
           '轻氧天气（以下简称“我们”）非常重视您的隐私。本协议阐述了我们如何处理您的个人信息。',
@@ -979,13 +1060,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showUserAgreement(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => const _ContentBottomSheet(
-        title: '用户协议',
+      builder: (ctx) => _ContentBottomSheet(
+        title: l10n.user_agreement,
         content: [
           '欢迎使用轻氧天气！请在使用前阅读以下条款。',
           ('1. 服务内容', '轻氧天气为您提供天气查询、极端天气预警、定时播报、城市搜索定位及天气助手等非商业服务。'),

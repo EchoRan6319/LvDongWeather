@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -166,6 +167,7 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
+    Color? color,
   }) async {
     if (kIsWeb) {
       return;
@@ -190,6 +192,7 @@ class NotificationService {
       enableVibration: true,
       playSound: true,
       icon: '@mipmap/ic_launcher',
+      color: color,
     );
 
     const iosDetails = DarwinNotificationDetails(

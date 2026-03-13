@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -322,6 +323,10 @@ class ScheduledBroadcastService {
   ///
   /// 返回通知详情实例
   Future<NotificationDetails> _buildNotificationDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    final colorInt = prefs.getInt('notification_accent_color');
+    final color = colorInt != null ? Color(colorInt) : null;
+
     if (kIsWeb) {
       return const NotificationDetails();
     }
@@ -335,6 +340,7 @@ class ScheduledBroadcastService {
       enableVibration: true,
       playSound: true,
       icon: '@mipmap/ic_launcher',
+      color: color,
       styleInformation: const BigTextStyleInformation(''),
     );
 
@@ -449,7 +455,7 @@ class ScheduledBroadcastService {
         id: _eveningNotificationId,
         title: title,
         body: body,
-        payload: 'evening_broadcast',
+        color: await _getPersistedThemeColor(),
       );
       debugPrint('[ScheduledBroadcast] Evening broadcast sent successfully');
     } catch (e, stackTrace) {
@@ -621,7 +627,15 @@ class ScheduledBroadcastService {
       id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title: title,
       body: message,
+      color: await _getPersistedThemeColor(),
     );
+  }
+
+  /// 获取持久化的主题色
+  Future<Color?> _getPersistedThemeColor() async {
+    final prefs = await SharedPreferences.getInstance();
+    final colorInt = prefs.getInt('notification_accent_color');
+    return colorInt != null ? Color(colorInt) : null;
   }
 }
 

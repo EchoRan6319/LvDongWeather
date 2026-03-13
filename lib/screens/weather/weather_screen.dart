@@ -11,6 +11,7 @@ import '../../widgets/hourly_forecast.dart';
 import '../../widgets/daily_forecast.dart';
 import '../../widgets/weather_alert_card.dart';
 import '../../widgets/air_quality_card.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 /// 天气主页面
 ///
@@ -198,7 +199,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   const SizedBox(width: 4),
                 ],
                 Text(
-                  location?.name ?? '未知位置',
+                  location?.name ?? AppLocalizations.of(context).unknown_location,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -256,7 +257,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildTempInfo(
-                  '最高',
+                  AppLocalizations.of(context).max_temp,
                   '${WeatherCode.convertTemperature(weather.daily.first.tempMax, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                 ),
                 Container(
@@ -266,7 +267,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   color: Theme.of(context).colorScheme.outline,
                 ),
                 _buildTempInfo(
-                  '最低',
+                  AppLocalizations.of(context).min_temp,
                   '${WeatherCode.convertTemperature(weather.daily.first.tempMin, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                 ),
                 Container(
@@ -276,7 +277,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   color: Theme.of(context).colorScheme.outline,
                 ),
                 _buildTempInfo(
-                  '体感',
+                  AppLocalizations.of(context).feels_like,
                   '${WeatherCode.convertTemperature(weather.current.feelsLike, toFahrenheit: settings.temperatureUnit == 'fahrenheit')}${settings.temperatureUnit == 'fahrenheit' ? '°F' : '°'}',
                 ),
               ],
@@ -339,7 +340,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                '加载天气失败',
+                AppLocalizations.of(context).load_weather_failed,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).colorScheme.error,
                   fontWeight: FontWeight.bold,
@@ -357,7 +358,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
               FilledButton.icon(
                 onPressed: _onRefresh,
                 icon: const Icon(Icons.refresh),
-                label: const Text('重试'),
+                label: Text(AppLocalizations.of(context).retry),
               ),
             ],
           ),
@@ -391,14 +392,14 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              '请先添加城市',
+              AppLocalizations.of(context).add_city_first,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              '点击右上角“导航”图标添加城市',
+              AppLocalizations.of(context).add_city_desc,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -505,7 +506,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Text('降雨预测', style: Theme.of(context).textTheme.titleMedium),
+                Text(AppLocalizations.of(context).rain_prediction, style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 8),
@@ -542,7 +543,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '详细信息',
+                  AppLocalizations.of(context).detailed_info,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -556,15 +557,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Expanded(
                   child: _buildDetailItem(
                     Icons.air,
-                    '风速',
-                    '${current.windSpeed} km/h',
+                    AppLocalizations.of(context).wind_speed,
+                    '${WeatherCode.convertWindSpeed(current.windSpeed, unit: ref.read(settingsProvider).windSpeedUnit)} ${_getWindUnitDisplay(ref.read(settingsProvider).windSpeedUnit)}',
                     current.windDir,
                   ),
                 ),
                 Expanded(
                   child: _buildDetailItem(
                     Icons.water_drop,
-                    '湿度',
+                    AppLocalizations.of(context).humidity,
                     '${current.humidity}%',
                     null,
                   ),
@@ -573,7 +574,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   child: todayDaily != null
                       ? _buildDetailItem(
                           Icons.wb_twilight,
-                          '日出',
+                          AppLocalizations.of(context).sunrise,
                           todayDaily.sunrise,
                           null,
                         )
@@ -588,15 +589,15 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                 Expanded(
                   child: _buildDetailItem(
                     Icons.visibility,
-                    '能见度',
-                    '${current.vis} km',
+                    AppLocalizations.of(context).visibility,
+                    '${WeatherCode.convertVisibility(current.vis, useImperial: ref.read(settingsProvider).windSpeedUnit == 'mph')} ${ref.read(settingsProvider).windSpeedUnit == 'mph' ? 'mi' : 'km'}',
                     null,
                   ),
                 ),
                 Expanded(
                   child: _buildDetailItem(
                     Icons.compress,
-                    '气压',
+                    AppLocalizations.of(context).pressure,
                     '${current.pressure} hPa',
                     null,
                   ),
@@ -605,7 +606,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
                   child: todayDaily != null
                       ? _buildDetailItem(
                           Icons.nights_stay,
-                          '日落',
+                          AppLocalizations.of(context).sunset,
                           todayDaily.sunset,
                           null,
                         )
@@ -707,6 +708,19 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     } catch (_) {}
     return null;
   }
+
+  /// 获取风速单位显示文本
+  String _getWindUnitDisplay(String unit) {
+    switch (unit) {
+      case 'ms':
+        return 'm/s';
+      case 'mph':
+        return 'mph';
+      case 'kmph':
+      default:
+        return 'km/h';
+    }
+  }
 }
 
 /// 城市选择器底部弹窗
@@ -776,8 +790,8 @@ class _CitySelectorSheetState extends ConsumerState<_CitySelectorSheet> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('无法获取位置，请检查权限设置'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).locate_failed),
               behavior: SnackBarBehavior.floating,
             ),
           );
