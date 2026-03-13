@@ -133,8 +133,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dynamic_color => 'Dynamic Color';
 
   @override
-  String get dynamic_color_desc =>
-      'Generate theme from wallpaper';
+  String get dynamic_color_desc => 'Generate theme from wallpaper';
 
   @override
   String get light_mode => 'Light Mode';
