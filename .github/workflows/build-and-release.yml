@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -77,7 +77,7 @@ jobs:
         run: cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/PureWeather-${GITHUB_REF_NAME}-android-arm64-release.apk"
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/PureWeather-*-android-arm64-release.apk
@@ -87,7 +87,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -140,7 +140,7 @@ jobs:
           Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/PureWeather-$env:GITHUB_REF_NAME-windows-x64-release.zip" -Force
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: windows-package
           path: build/windows/x64/runner/PureWeather-*-windows-x64-release.zip
@@ -150,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -227,14 +227,14 @@ jobs:
           tar -C build -czf "build/PureWeather-${GITHUB_REF_NAME}-web-release.tar.gz" web
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: linux-package
           path: build/linux/x64/release/PureWeather-*-linux-x64-release.tar.gz
           if-no-files-found: error
 
       - name: Upload Web artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: web-package
           path: build/PureWeather-*-web-release.tar.gz
@@ -244,7 +244,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -326,14 +326,14 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent "$MACOS_APP_PATH" "build/macos/PureWeather-${GITHUB_REF_NAME}-macos-release.zip"
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: ios-package
           path: build/ios/PureWeather-*-ios-release-no-codesign.zip
           if-no-files-found: error
 
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         with:
           name: macos-package
           path: build/macos/PureWeather-*-macos-release.zip
@@ -349,37 +349,37 @@ jobs:
       - build-apple
     steps:
       - name: Download Android artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: android-apk
           path: dist/android
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: windows-package
           path: dist/windows
 
       - name: Download Linux artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: linux-package
           path: dist/linux
 
       - name: Download Web artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: web-package
           path: dist/web
 
       - name: Download iOS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: ios-package
           path: dist/ios
 
       - name: Download macOS artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: macos-package
           path: dist/macos
