@@ -1,4 +1,5 @@
 import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 allprojects {
     repositories {
@@ -7,7 +8,7 @@ allprojects {
     }
 }
 
-// 统一所有子项目的Java版本，消除Java 8过时警告
+// 统一所有子项目的Java和Kotlin版本
 subprojects {
     afterEvaluate {
         if (hasProperty("android")) {
@@ -16,6 +17,12 @@ subprojects {
                     sourceCompatibility = JavaVersion.VERSION_21
                     targetCompatibility = JavaVersion.VERSION_21
                 }
+            }
+        }
+        // 配置Kotlin编译任务的JVM目标版本
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_21)
             }
         }
     }
