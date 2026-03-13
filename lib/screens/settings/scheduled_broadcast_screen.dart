@@ -421,14 +421,16 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
         await openAppSettings();
         return false;
       }
-      
+
       // 检查电池优化
       if (defaultTargetPlatform == TargetPlatform.android) {
         final batteryStatus = await Permission.ignoreBatteryOptimizations.status;
         if (!batteryStatus.isGranted) {
-          final shouldRequest = await _showBatteryOptimizationDialog(context);
-          if (shouldRequest == true) {
-            await Permission.ignoreBatteryOptimizations.request();
+          if (context.mounted) {
+            final shouldRequest = await _showBatteryOptimizationDialog(context);
+            if (shouldRequest == true) {
+              await Permission.ignoreBatteryOptimizations.request();
+            }
           }
         }
       }

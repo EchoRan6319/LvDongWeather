@@ -8,7 +8,6 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
-import 'dart:developer';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
@@ -1169,14 +1168,12 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
-  final Widget? trailing;
   final VoidCallback? onTap;
 
   const _SettingsTile({
     required this.icon,
     required this.title,
     this.subtitle,
-    this.trailing,
     this.onTap,
   });
 
@@ -1218,7 +1215,6 @@ class _SettingsTile extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
               if (onTap != null) ...[
                 const SizedBox(width: 8),
                 Icon(
@@ -1292,35 +1288,6 @@ class _SettingsSwitch extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ColorPreview extends StatelessWidget {
-  final Color color;
-
-  const _ColorPreview({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.4),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
     );
   }
