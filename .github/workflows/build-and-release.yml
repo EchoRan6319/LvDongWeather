@@ -377,34 +377,6 @@ jobs:
             --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
       - name: Package Linux (tar.gz)
         run: tar -C build/linux/x64/release -czf "build/linux/x64/release/PureWeather-${GITHUB_REF_NAME}-linux-x64-release.tar.gz" bundle
-      - name: Package Linux (.deb)
-        run: |
-          sudo apt-get install -y ruby ruby-dev build-essential
-          sudo gem install fpm
-          mkdir -p build/deb/DEBIAN
-          mkdir -p build/deb/usr/share/applications
-          mkdir -p build/deb/usr/share/icons/hicolor/256x256/apps
-          cat > build/deb/DEBIAN/control << EOF
-          Package: pureweather
-          Version: ${GITHUB_REF_NAME#v}
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Depends: libgtk-3-0, libblkid1, liblzma5
-          Maintainer: EchoRan <your-email@example.com>
-          Description: PureWeather - A Material You Design Weather App
-           A beautiful weather application using Material You Design.
-          EOF
-          cp -r build/linux/x64/release/bundle/* build/deb/usr/share/pureweather/
-          cat > build/deb/usr/share/applications/pureweather.desktop << EOF
-          [Desktop Entry]
-          Name=PureWeather
-          Exec=/usr/share/pureweather/pureweather
-          Icon=/usr/share/pureweather/data/flutter_assets/assets/icons/app_icon.png
-          Type=Application
-          Categories=Utility;
-          EOF
-          fpm -s dir -t deb -n pureweather -v "${GITHUB_REF_NAME#v}" -C build/deb -p "build/linux/x64/release/PureWeather-${GITHUB_REF_NAME}-linux-x64-release.deb"
       - name: Build Web
         env:
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
@@ -424,14 +396,11 @@ jobs:
             --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
       - name: Package Web artifact
         run: cd build && zip -r "PureWeather-${GITHUB_REF_NAME}-web-release.zip" web
-      - name: Package Linux (.rpm)
-        run: |
-          fpm -s dir -t rpm -n pureweather -v "${GITHUB_REF_NAME#v}" --rpm-os linux -C build/deb -p "build/linux/x64/release/PureWeather-${GITHUB_REF_NAME}-linux-x64-release.rpm"
-      - name: Upload Linux artifacts
+      - name: Upload Linux artifact
         uses: actions/upload-artifact@v4.6.1
         with:
           name: linux-package
-          path: build/linux/x64/release/PureWeather-*-linux-x64-release.*
+          path: build/linux/x64/release/PureWeather-*-linux-x64-release.tar.gz
           if-no-files-found: error
       - name: Upload Web artifact
         uses: actions/upload-artifact@v4.6.1
@@ -599,7 +568,7 @@ jobs:
           files: |
             dist/android/*.apk
             dist/windows/*.zip
-            dist/linux/*
+            dist/linux/*.tar.gz
             dist/web/*.zip
             dist/ios/*.ipa
             dist/macos/*
