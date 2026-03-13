@@ -65,6 +65,17 @@ class SettingsScreen extends ConsumerWidget {
                                 onTap: () =>
                                     _showThemeModeDialog(context, ref, themeSettings),
                               ),
+                              // A屏黑主题开关（仅在深色模式下显示）
+                              if (themeSettings.themeMode != AppThemeMode.light)
+                                _SettingsSwitch(
+                                  icon: Icons.brightness_2_outlined,
+                                  title: 'A屏黑主题',
+                                  subtitle: '纯黑背景，更适合AMOLED屏幕',
+                                  value: themeSettings.useAmoledBlack,
+                                  onChanged: (value) {
+                                    ref.read(themeProvider.notifier).setUseAmoledBlack(value);
+                                  },
+                                ),
                               _SettingsTile(
                                 icon: Icons.color_lens_outlined,
                                 title: '主题颜色',

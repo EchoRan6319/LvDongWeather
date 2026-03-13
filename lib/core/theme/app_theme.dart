@@ -173,17 +173,34 @@ class AppTheme {
     Color(0xFF006494), // 深蓝色
   ];
 
+  /// 创建A屏黑颜色方案
+  ///
+  /// [baseScheme] 基础颜色方案
+  /// 返回适配A屏黑的ColorScheme
+  static ColorScheme createAmoledBlackScheme(ColorScheme baseScheme) {
+    return baseScheme.copyWith(
+      surface: Colors.black,
+      surfaceContainer: const Color(0xFF121212),
+      surfaceContainerHigh: const Color(0xFF1E1E1E),
+      surfaceContainerHighest: const Color(0xFF2C2C2C),
+      surfaceTint: Colors.transparent,
+      shadow: Colors.black,
+    );
+  }
+
   /// 创建应用主题
-  /// 
+  ///
   /// [colorScheme] 颜色方案
   /// [useMaterial3] 是否使用Material 3
   /// [fontFamily] 字体系列
-  /// 
+  /// [isAmoledBlack] 是否使用A屏黑主题
+  ///
   /// 返回配置好的ThemeData实例
   static ThemeData createTheme({
     required ColorScheme colorScheme,
     required bool useMaterial3,
     String? fontFamily,
+    bool isAmoledBlack = false,
   }) {
     return ThemeData(
       useMaterial3: useMaterial3,

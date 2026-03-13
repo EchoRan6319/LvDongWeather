@@ -117,6 +117,11 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
               debugPrint('[DynamicColor] Using seed color: $seedColor');
             }
 
+            // 根据是否使用A屏黑主题调整深色颜色方案
+            final finalDarkColorScheme = themeSettings.useAmoledBlack
+                ? AppTheme.createAmoledBlackScheme(darkColorScheme)
+                : darkColorScheme;
+
             return MaterialApp(
               title: '轻氧天气',
               debugShowCheckedModeBanner: false,
@@ -134,8 +139,9 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                 useMaterial3: themeSettings.useMaterial3,
               ),
               darkTheme: AppTheme.createTheme(
-                colorScheme: darkColorScheme,
+                colorScheme: finalDarkColorScheme,
                 useMaterial3: themeSettings.useMaterial3,
+                isAmoledBlack: themeSettings.useAmoledBlack,
               ),
               themeMode: themeNotifier.flutterThemeMode,
               builder: (context, child) {
