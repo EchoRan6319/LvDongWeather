@@ -39,9 +39,6 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
-  // 添加一个计数器，用于强制重建MaterialApp
-  int _rebuildCount = 0;
-
   @override
   void initState() {
     super.initState();
@@ -60,10 +57,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // 当应用从后台返回前台时，增加计数器以强制重建MaterialApp
-      setState(() {
-        _rebuildCount++;
-      });
+      _scheduleBroadcasts();
     }
   }
 
@@ -87,65 +81,66 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       }
     });
 
-    // 使用_rebuildCount作为key，确保应用从后台返回前台时重新构建
-    return KeyedSubtree(
-      key: ValueKey(_rebuildCount),
-      child: DynamicColorBuilder(
-        builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-          ColorScheme lightColorScheme;
-          ColorScheme darkColorScheme;
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        ColorScheme lightColorScheme;
+        ColorScheme darkColorScheme;
 
-          if (themeSettings.useDynamicColor && lightDynamic != null) {
-            lightColorScheme = lightDynamic;
-            darkColorScheme = darkDynamic ?? lightDynamic;
-            debugPrint(
-              '[DynamicColor] Using dynamic colors: primary=${lightDynamic.primary}',
-            );
-          } else {
-            final seedColor =
-                themeSettings.seedColor ?? AppTheme.presetSeedColors.first;
-            lightColorScheme = ColorScheme.fromSeed(
-              seedColor: seedColor,
-              brightness: Brightness.light,
-            );
-            darkColorScheme = ColorScheme.fromSeed(
-              seedColor: seedColor,
-              brightness: Brightness.dark,
-            );
-            debugPrint('[DynamicColor] Using seed color: $seedColor');
-          }
-
-          return MaterialApp(
-            title: '\u8f7b\u6c27\u5929\u6c14',
-            debugShowCheckedModeBanner: false,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('zh', 'CN'),
-              Locale('en', 'US'),
-            ],
-            theme: AppTheme.createTheme(
-              colorScheme: lightColorScheme,
-              useMaterial3: themeSettings.useMaterial3,
-            ),
-            darkTheme: AppTheme.createTheme(
-              colorScheme: darkColorScheme,
-              useMaterial3: themeSettings.useMaterial3,
-            ),
-            themeMode: themeNotifier.flutterThemeMode,
-            builder: (context, child) {
-              if (appSettings.predictiveBackEnabled) {
-                return PredictiveBackGestureHandler(child: child!);
-              }
-              return child!;
-            },
-            home: const MainScreen(),
+        if (themeSettings.useDynamicColor && lightDynamic != null) {
+          lightColorScheme = lightDynamic;
+          // Generate a proper dark scheme if the platform only provides a light one (like some Windows versions)
+          darkColorScheme = darkDynamic ??
+              ColorScheme.fromSeed(
+                seedColor: lightDynamic.primary,
+                brightness: Brightness.dark,
+              );
+          debugPrint(
+            '[DynamicColor] Using system dynamic colors. Primary: ${lightDynamic.primary}',
           );
-        },
-      ),
+        } else {
+          final seedColor =
+              themeSettings.seedColor ?? AppTheme.presetSeedColors.first;
+          lightColorScheme = ColorScheme.fromSeed(
+            seedColor: seedColor,
+            brightness: Brightness.light,
+          );
+          darkColorScheme = ColorScheme.fromSeed(
+            seedColor: seedColor,
+            brightness: Brightness.dark,
+          );
+          debugPrint('[DynamicColor] Using seed color: $seedColor');
+        }
+
+        return MaterialApp(
+          title: '轻氧天气',
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('zh', 'CN'),
+            Locale('en', 'US'),
+          ],
+          theme: AppTheme.createTheme(
+            colorScheme: lightColorScheme,
+            useMaterial3: themeSettings.useMaterial3,
+          ),
+          darkTheme: AppTheme.createTheme(
+            colorScheme: darkColorScheme,
+            useMaterial3: themeSettings.useMaterial3,
+          ),
+          themeMode: themeNotifier.flutterThemeMode,
+          builder: (context, child) {
+            if (appSettings.predictiveBackEnabled) {
+              return PredictiveBackGestureHandler(child: child!);
+            }
+            return child!;
+          },
+          home: const MainScreen(),
+        );
+      },
     );
   }
 }
@@ -161,22 +156,11 @@ class PredictiveBackGestureHandler extends StatefulWidget {
 }
 
 class _PredictiveBackGestureHandlerState
-    extends State<PredictiveBackGestureHandler>
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
+    extends State<PredictiveBackGestureHandler> {
   @override
   Widget build(BuildContext context) {
+    // Predictive back logic is typically handled at the Navigator level or via specific platform channels.
+    // This wrapper ensures the subtree is correctly positioned.
     return widget.child;
   }
 }
