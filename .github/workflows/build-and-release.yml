@@ -224,7 +224,7 @@ jobs:
           path: build/app/outputs/flutter-apk/PureWeather-*-android-x86_64-release.apk
           if-no-files-found: error
 
-  build-windows:
+  build-windows-x86_64:
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -256,7 +256,7 @@ jobs:
           DEEPSEEK_API_KEY=$env:DEEPSEEK_API_KEY
           "@ | Set-Content -Path .env -Encoding UTF8
 
-      - name: Build Windows
+      - name: Build Windows x86_64
         shell: pwsh
         env:
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
@@ -278,13 +278,149 @@ jobs:
       - name: Package Windows artifact
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/PureWeather-$env:GITHUB_REF_NAME-windows-x64-release.zip" -Force
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "build/windows/x64/runner/PureWeather-$env:GITHUB_REF_NAME-windows-x86_64-release.zip" -Force
 
-      - name: Upload Windows artifact
+      - name: Upload Windows artifact (x86_64)
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: windows-package
-          path: build/windows/x64/runner/PureWeather-*-windows-x64-release.zip
+          name: windows-package-x86_64
+          path: build/windows/x64/runner/PureWeather-*-windows-x86_64-release.zip
+          if-no-files-found: error
+
+  build-android-universal:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Restore Android release keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > PureWaether
+
+      - name: Generate .env for Flutter asset bundling
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          cat > .env << EOF
+          QWEATHER_API_KEY=$QWEATHER_API_KEY
+          CAIYUN_API_KEY=$CAIYUN_API_KEY
+          AMAP_API_KEY=$AMAP_API_KEY
+          AMAP_WEB_KEY=$AMAP_WEB_KEY
+          DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
+          EOF
+
+      - name: Build Android Universal APK
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          SIGNING_KEYSTORE_PATH: ../PureWaether
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          BUILD_NAME="${GITHUB_REF_NAME#v}"
+          flutter build apk --release \
+            --build-name="$BUILD_NAME" \
+            --build-number="$GITHUB_RUN_NUMBER" \
+            --target-platform=android-arm,android-arm64,android-x64 \
+            --dart-define=QWEATHER_API_KEY="$QWEATHER_API_KEY" \
+            --dart-define=CAIYUN_API_KEY="$CAIYUN_API_KEY" \
+            --dart-define=AMAP_API_KEY="$AMAP_API_KEY" \
+            --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
+            --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
+
+      - name: Prepare Android Universal artifact
+        run: cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/PureWeather-${GITHUB_REF_NAME}-android-universal-release.apk"
+
+      - name: Upload Android Universal artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: android-apk-universal
+          path: build/app/outputs/flutter-apk/PureWeather-*-android-universal-release.apk
+          if-no-files-found: error
+
+  build-windows-arm64:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate .env for Flutter asset bundling
+        shell: pwsh
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          @"
+          QWEATHER_API_KEY=$env:QWEATHER_API_KEY
+          CAIYUN_API_KEY=$env:CAIYUN_API_KEY
+          AMAP_API_KEY=$env:AMAP_API_KEY
+          AMAP_WEB_KEY=$env:AMAP_WEB_KEY
+          DEEPSEEK_API_KEY=$env:DEEPSEEK_API_KEY
+          "@ | Out-File -FilePath .env -Encoding utf8
+
+      - name: Build Windows ARM64
+        shell: pwsh
+        env:
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          AMAP_WEB_KEY: ${{ secrets.AMAP_WEB_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          $buildName = $env:GITHUB_REF_NAME -replace '^v', ''
+          flutter build windows --release --target-arch=arm64 `
+            --build-name="$buildName" `
+            --build-number="$env:GITHUB_RUN_NUMBER" `
+            --dart-define=QWEATHER_API_KEY="$env:QWEATHER_API_KEY" `
+            --dart-define=CAIYUN_API_KEY="$env:CAIYUN_API_KEY" `
+            --dart-define=AMAP_API_KEY="$env:AMAP_API_KEY" `
+            --dart-define=AMAP_WEB_KEY="$env:AMAP_WEB_KEY" `
+            --dart-define=DEEPSEEK_API_KEY="$env:DEEPSEEK_API_KEY"
+
+      - name: Package Windows ARM64 artifact
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build/windows/arm64/runner/Release/*" -DestinationPath "build/windows/arm64/runner/PureWeather-$env:GITHUB_REF_NAME-windows-arm64-release.zip" -Force
+
+      - name: Upload Windows ARM64 artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: windows-package-arm64
+          path: build/windows/arm64/runner/PureWeather-*-windows-arm64-release.zip
           if-no-files-found: error
 
   build-linux-web:
@@ -365,7 +501,7 @@ jobs:
 
       - name: Package Web artifact
         run: |
-          tar -C build -czf "build/PureWeather-${GITHUB_REF_NAME}-web-release.tar.gz" web
+          cd build && zip -r "PureWeather-${GITHUB_REF_NAME}-web-release.zip" web
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4.6.1
@@ -378,7 +514,7 @@ jobs:
         uses: actions/upload-artifact@v4.6.1
         with:
           name: web-package
-          path: build/PureWeather-*-web-release.tar.gz
+          path: build/PureWeather-*-web-release.zip
           if-no-files-found: error
 
   build-apple:
@@ -430,16 +566,21 @@ jobs:
             --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
             --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
 
-      - name: Package iOS artifact
+      - name: Package iOS artifact (Unsigned IPA)
         run: |
           IOS_APP_PATH="$(find build/ios/iphoneos -maxdepth 1 -name '*.app' -print -quit)"
           if [ -z "$IOS_APP_PATH" ]; then
             echo "iOS app bundle not found"
             exit 1
           fi
-          ditto -c -k --sequesterRsrc --keepParent "$IOS_APP_PATH" "build/ios/PureWeather-${GITHUB_REF_NAME}-ios-release-no-codesign.zip"
+          # Create Payload folder and copy .app into it
+          mkdir -p build/ios/Payload
+          cp -r "$IOS_APP_PATH" build/ios/Payload/
+          # Zip Payload folder to create unsigned IPA
+          cd build/ios && zip -r "PureWeather-${GITHUB_REF_NAME}-ios-release-unsigned.ipa" Payload
+          rm -rf Payload
 
-      - name: Build macOS
+      - name: Build macOS (Universal Binary)
         env:
           QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
           CAIYUN_API_KEY: ${{ secrets.CAIYUN_API_KEY }}
@@ -457,27 +598,38 @@ jobs:
             --dart-define=AMAP_WEB_KEY="$AMAP_WEB_KEY" \
             --dart-define=DEEPSEEK_API_KEY="$DEEPSEEK_API_KEY"
 
-      - name: Package macOS artifact
+      - name: Package macOS artifact (Universal DMG)
         run: |
           MACOS_APP_PATH="$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' -print -quit)"
           if [ -z "$MACOS_APP_PATH" ]; then
             echo "macOS app bundle not found"
             exit 1
           fi
-          ditto -c -k --sequesterRsrc --keepParent "$MACOS_APP_PATH" "build/macos/PureWeather-${GITHUB_REF_NAME}-macos-release.zip"
+          # Create DMG with create-dmg tool
+          brew install create-dmg || true
+          create-dmg \
+            --volname "PureWeather" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --app-drop-link 450 185 \
+            "build/macos/PureWeather-${GITHUB_REF_NAME}-macos-universal.dmg" \
+            "$MACOS_APP_PATH" || \
+          # Fallback to zip if create-dmg fails
+          ditto -c -k --sequesterRsrc --keepParent "$MACOS_APP_PATH" "build/macos/PureWeather-${GITHUB_REF_NAME}-macos-universal.zip"
 
       - name: Upload iOS artifact
         uses: actions/upload-artifact@v4.6.1
         with:
           name: ios-package
-          path: build/ios/PureWeather-*-ios-release-no-codesign.zip
+          path: build/ios/PureWeather-*-ios-release-unsigned.ipa
           if-no-files-found: error
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4.6.1
         with:
           name: macos-package
-          path: build/macos/PureWeather-*-macos-release.zip
+          path: build/macos/PureWeather-*-macos-universal.*
           if-no-files-found: error
 
   release:
@@ -487,7 +639,9 @@ jobs:
       - build-android-arm64
       - build-android-arm32
       - build-android-x86_64
-      - build-windows
+      - build-android-universal
+      - build-windows-x86_64
+      - build-windows-arm64
       - build-linux-web
       - build-apple
     steps:
@@ -509,10 +663,22 @@ jobs:
           name: android-apk-x86_64
           path: dist/android
 
-      - name: Download Windows artifact
+      - name: Download Android artifact (universal)
         uses: actions/download-artifact@v4.1.9
         with:
-          name: windows-package
+          name: android-apk-universal
+          path: dist/android
+
+      - name: Download Windows artifact (x86_64)
+        uses: actions/download-artifact@v4.1.9
+        with:
+          name: windows-package-x86_64
+          path: dist/windows
+
+      - name: Download Windows artifact (ARM64)
+        uses: actions/download-artifact@v4.1.9
+        with:
+          name: windows-package-arm64
           path: dist/windows
 
       - name: Download Linux artifact
@@ -547,6 +713,7 @@ jobs:
             dist/android/*.apk
             dist/windows/*.zip
             dist/linux/*.tar.gz
-            dist/web/*.tar.gz
-            dist/ios/*.zip
-            dist/macos/*.zip
+            dist/web/*.zip
+            dist/ios/*.ipa
+            dist/macos/*.dmg
+             dist/macos/*.zip
