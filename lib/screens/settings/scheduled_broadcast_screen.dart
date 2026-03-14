@@ -5,255 +5,85 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../providers/scheduled_broadcast_provider.dart';
 import '../../services/scheduled_broadcast_service.dart';
 import '../../services/notification_service.dart';
+import '../../widgets/settings/settings.dart';
 
 class ScheduledBroadcastScreen extends ConsumerWidget {
   const ScheduledBroadcastScreen({super.key});
 
   static Future<void> show(BuildContext context, WidgetRef ref) async {
+    final settings = ref.read(scheduledBroadcastProvider);
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
+        initialChildSize: 0.75,
         minChildSize: 0.5,
         maxChildSize: 0.9,
         expand: false,
-        builder: (context, scrollController) =>
-            _ScheduledBroadcastSheet(scrollController: scrollController),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return const SizedBox.shrink();
-  }
-}
-
-class _ScheduledBroadcastSheet extends ConsumerWidget {
-  final ScrollController scrollController;
-
-  const _ScheduledBroadcastSheet({required this.scrollController});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(scheduledBroadcastProvider);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 16),
+        builder: (context, scrollController) {
+          return Container(
             decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(2),
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Text(
-              '定时播报',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              controller: scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
               children: [
-                _buildDescriptionCard(context),
-                _buildSection(
-                  context,
-                  title: '基本设置',
-                  icon: Icons.settings_outlined,
-                  children: [
-                    _SettingsSwitch(
-                      icon: Icons.notifications_active_outlined,
-                      title: '启用定时播报',
-                      subtitle: '开启后将在设定时间推送天气信息',
-                      value: settings.enabled,
-                      onChanged: (value) async {
-                        if (value) {
-                          final hasPermission =
-                              await _checkAndRequestPermissions(context);
-                          if (!hasPermission) return;
-                        }
-                        await ref
-                            .read(scheduledBroadcastProvider.notifier)
-                            .setEnabled(value);
-                        if (value) {
-                          await scheduledBroadcastServiceProvider
-                              .scheduleBroadcasts(settings);
-                        } else {
-                          await scheduledBroadcastServiceProvider
-                              .cancelAllScheduledBroadcasts();
-                        }
-                      },
+                _buildHandle(context),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                  child: Text(
+                    '定时播报',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
+                  ),
                 ),
-                _buildSection(
-                  context,
-                  title: '播报时间',
-                  icon: Icons.schedule_outlined,
-                  children: [
-                    _buildTimeTile(
-                      context,
-                      ref,
-                      title: '早间播报',
-                      subtitle: '推送今日天气情况',
-                      time: settings.morningTime,
-                      icon: Icons.wb_sunny_outlined,
-                      enabled: settings.enabled,
-                      onTimeChanged: (time) async {
-                        await ref
-                            .read(scheduledBroadcastProvider.notifier)
-                            .setMorningTime(time);
-                        if (settings.enabled) {
-                          await scheduledBroadcastServiceProvider
-                              .scheduleBroadcasts(
-                                settings.copyWith(morningTime: time),
-                              );
-                        }
-                      },
-                      onEnabledChanged: (enabled) async {
-                        final newTime = settings.morningTime.copyWith(
-                          enabled: enabled,
-                        );
-                        await ref
-                            .read(scheduledBroadcastProvider.notifier)
-                            .setMorningTime(newTime);
-                        if (settings.enabled) {
-                          await scheduledBroadcastServiceProvider
-                              .scheduleBroadcasts(
-                                settings.copyWith(morningTime: newTime),
-                              );
-                        }
-                      },
-                    ),
-                    _buildTimeTile(
-                      context,
-                      ref,
-                      title: '晚间播报',
-                      subtitle: '推送次日天气情况',
-                      time: settings.eveningTime,
-                      icon: Icons.nightlight_outlined,
-                      enabled: settings.enabled,
-                      onTimeChanged: (time) async {
-                        await ref
-                            .read(scheduledBroadcastProvider.notifier)
-                            .setEveningTime(time);
-                        if (settings.enabled) {
-                          await scheduledBroadcastServiceProvider
-                              .scheduleBroadcasts(
-                                settings.copyWith(eveningTime: time),
-                              );
-                        }
-                      },
-                      onEnabledChanged: (enabled) async {
-                        final newTime = settings.eveningTime.copyWith(
-                          enabled: enabled,
-                        );
-                        await ref
-                            .read(scheduledBroadcastProvider.notifier)
-                            .setEveningTime(newTime);
-                        if (settings.enabled) {
-                          await scheduledBroadcastServiceProvider
-                              .scheduleBroadcasts(
-                                settings.copyWith(eveningTime: newTime),
-                              );
-                        }
-                      },
-                    ),
-                  ],
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      _buildDescriptionCard(context),
+                      const SizedBox(height: 8),
+                      _buildBasicSettings(context, ref, settings),
+                      _buildTimeSettings(context, ref, settings),
+                      _buildContentSettings(context, ref, settings),
+                      _buildTestSettings(context, ref, settings),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
-                _buildSection(
-                  context,
-                  title: '播报内容',
-                  icon: Icons.article_outlined,
-                  children: [
-                    _SettingsSwitch(
-                      icon: Icons.air_outlined,
-                      title: '包含风力风向',
-                      subtitle: '在播报中显示风向和风力等级',
-                      value: settings.includeWindInfo,
-                      onChanged: settings.enabled
-                          ? (value) async {
-                              await ref
-                                  .read(scheduledBroadcastProvider.notifier)
-                                  .setIncludeWindInfo(value);
-                            }
-                          : null,
-                    ),
-                    _SettingsSwitch(
-                      icon: Icons.water_drop_outlined,
-                      title: '包含湿度信息',
-                      subtitle: '在播报中显示空气湿度',
-                      value: settings.includeAirQuality,
-                      onChanged: settings.enabled
-                          ? (value) async {
-                              await ref
-                                  .read(scheduledBroadcastProvider.notifier)
-                                  .setIncludeAirQuality(value);
-                            }
-                          : null,
-                    ),
-                  ],
-                ),
-                _buildSection(
-                  context,
-                  title: '测试',
-                  icon: Icons.play_circle_outline,
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.wb_sunny_outlined,
-                      title: '测试早间播报',
-                      subtitle: '立即发送一条早间播报通知',
-                      onTap: () async {
-                        await _testBroadcast(context, ref, true, settings);
-                      },
-                    ),
-                    _SettingsTile(
-                      icon: Icons.nightlight_outlined,
-                      title: '测试晚间播报',
-                      subtitle: '立即发送一条晚间播报通知',
-                      onTap: () async {
-                        await _testBroadcast(context, ref, false, settings);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildDescriptionCard(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+  static Widget _buildHandle(BuildContext context) {
+    return Center(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        width: 32,
+        height: 4,
+        margin: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.outlineVariant,
+          borderRadius: BorderRadius.circular(2),
         ),
+      ),
+    );
+  }
+
+  static Widget _buildDescriptionCard(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Icon(
@@ -265,7 +95,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
             Expanded(
               child: Text(
                 '设置每日定时推送天气信息，仅支持当前定位所在地',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -276,45 +106,169 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _SettingsCard(child: Column(children: children)),
-        ],
-      ),
+  static Widget _buildBasicSettings(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledBroadcastSettings settings,
+  ) {
+    return SettingsSection(
+      title: '基本设置',
+      icon: Icons.settings_outlined,
+      showDividers: false,
+      children: [
+        SettingsSwitchTile(
+          icon: Icons.notifications_active_outlined,
+          title: '启用定时播报',
+          subtitle: '开启后将在设定时间推送天气信息',
+          value: settings.enabled,
+          onChanged: (value) async {
+            if (value) {
+              final hasPermission = await _checkAndRequestPermissions(context);
+              if (!hasPermission) return;
+            }
+            await ref.read(scheduledBroadcastProvider.notifier).setEnabled(value);
+            if (value) {
+              await scheduledBroadcastServiceProvider.scheduleBroadcasts(settings);
+            } else {
+              await scheduledBroadcastServiceProvider.cancelAllScheduledBroadcasts();
+            }
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildTimeTile(
+  static Widget _buildTimeSettings(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledBroadcastSettings settings,
+  ) {
+    return SettingsSection(
+      title: '播报时间',
+      icon: Icons.schedule_outlined,
+      children: [
+        _buildTimeTile(
+          context,
+          ref,
+          title: '早间播报',
+          subtitle: '推送今日天气情况',
+          time: settings.morningTime,
+          icon: Icons.wb_sunny_outlined,
+          enabled: settings.enabled,
+          onTimeChanged: (time) async {
+            await ref.read(scheduledBroadcastProvider.notifier).setMorningTime(time);
+            if (settings.enabled) {
+              await scheduledBroadcastServiceProvider.scheduleBroadcasts(
+                settings.copyWith(morningTime: time),
+              );
+            }
+          },
+          onEnabledChanged: (enabled) async {
+            final newTime = settings.morningTime.copyWith(enabled: enabled);
+            await ref.read(scheduledBroadcastProvider.notifier).setMorningTime(newTime);
+            if (settings.enabled) {
+              await scheduledBroadcastServiceProvider.scheduleBroadcasts(
+                settings.copyWith(morningTime: newTime),
+              );
+            }
+          },
+        ),
+        _buildTimeTile(
+          context,
+          ref,
+          title: '晚间播报',
+          subtitle: '推送次日天气情况',
+          time: settings.eveningTime,
+          icon: Icons.nightlight_outlined,
+          enabled: settings.enabled,
+          onTimeChanged: (time) async {
+            await ref.read(scheduledBroadcastProvider.notifier).setEveningTime(time);
+            if (settings.enabled) {
+              await scheduledBroadcastServiceProvider.scheduleBroadcasts(
+                settings.copyWith(eveningTime: time),
+              );
+            }
+          },
+          onEnabledChanged: (enabled) async {
+            final newTime = settings.eveningTime.copyWith(enabled: enabled);
+            await ref.read(scheduledBroadcastProvider.notifier).setEveningTime(newTime);
+            if (settings.enabled) {
+              await scheduledBroadcastServiceProvider.scheduleBroadcasts(
+                settings.copyWith(eveningTime: newTime),
+              );
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildContentSettings(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledBroadcastSettings settings,
+  ) {
+    return SettingsSection(
+      title: '播报内容',
+      icon: Icons.article_outlined,
+      children: [
+        SettingsSwitchTile(
+          icon: Icons.air_outlined,
+          title: '包含风力风向',
+          subtitle: '在播报中显示风向和风力等级',
+          value: settings.includeWindInfo,
+          onChanged: settings.enabled
+              ? (value) async {
+                  await ref.read(scheduledBroadcastProvider.notifier).setIncludeWindInfo(value);
+                }
+              : null,
+        ),
+        SettingsSwitchTile(
+          icon: Icons.water_drop_outlined,
+          title: '包含湿度信息',
+          subtitle: '在播报中显示空气湿度',
+          value: settings.includeAirQuality,
+          onChanged: settings.enabled
+              ? (value) async {
+                  await ref.read(scheduledBroadcastProvider.notifier).setIncludeAirQuality(value);
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildTestSettings(
+    BuildContext context,
+    WidgetRef ref,
+    ScheduledBroadcastSettings settings,
+  ) {
+    return SettingsSection(
+      title: '测试',
+      icon: Icons.play_circle_outline,
+      showDividers: false,
+      children: [
+        SettingsListTile(
+          icon: Icons.wb_sunny_outlined,
+          title: '测试早间播报',
+          subtitle: '立即发送一条早间播报通知',
+          onTap: () async {
+            await _testBroadcast(context, ref, true, settings);
+          },
+        ),
+        SettingsListTile(
+          icon: Icons.nightlight_outlined,
+          title: '测试晚间播报',
+          subtitle: '立即发送一条晚间播报通知',
+          onTap: () async {
+            await _testBroadcast(context, ref, false, settings);
+          },
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildTimeTile(
     BuildContext context,
     WidgetRef ref, {
     required String title,
@@ -325,6 +279,17 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     required Function(ScheduledTime) onTimeChanged,
     required Function(bool) onEnabledChanged,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final iconColor = enabled
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+
+    final titleColor = enabled
+        ? colorScheme.onSurface
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -335,14 +300,14 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Icon(
-                icon,
-                size: 22,
-                color: enabled
-                    ? Theme.of(context).colorScheme.onSurfaceVariant
-                    : Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: Icon(
+                  icon,
+                  size: 24,
+                  color: iconColor,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -351,19 +316,16 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
-                        color: enabled
-                            ? null
-                            : Theme.of(context).colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.5),
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -372,10 +334,10 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(
                 time.formattedTime,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                style: textTheme.titleMedium?.copyWith(
                   color: enabled && time.enabled
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.outline,
+                      ? colorScheme.primary
+                      : colorScheme.outline,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -391,7 +353,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     );
   }
 
-  Future<bool> _checkAndRequestPermissions(BuildContext context) async {
+  static Future<bool> _checkAndRequestPermissions(BuildContext context) async {
     final notificationGranted = await notificationServiceProvider.requestNotificationPermission();
     if (!notificationGranted) {
       if (context.mounted) {
@@ -439,7 +401,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     return true;
   }
 
-  Future<bool?> _showBatteryOptimizationDialog(BuildContext context) {
+  static Future<bool?> _showBatteryOptimizationDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -462,7 +424,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     );
   }
 
-  Future<bool?> _showScheduleExactAlarmDialog(BuildContext context) {
+  static Future<bool?> _showScheduleExactAlarmDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -485,7 +447,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     );
   }
 
-  void _showPermissionDeniedDialog(
+  static void _showPermissionDeniedDialog(
     BuildContext context,
     String title,
     String message,
@@ -512,7 +474,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     );
   }
 
-  void _showTimePickerDialog(
+  static void _showTimePickerDialog(
     BuildContext context,
     ScheduledTime currentTime,
     Function(ScheduledTime) onTimeChanged,
@@ -535,7 +497,7 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
     }
   }
 
-  Future<void> _testBroadcast(
+  static Future<void> _testBroadcast(
     BuildContext context,
     WidgetRef ref,
     bool isMorning,
@@ -583,147 +545,9 @@ class _ScheduledBroadcastSheet extends ConsumerWidget {
       }
     }
   }
-}
-
-class _SettingsCard extends StatelessWidget {
-  final Widget child;
-
-  const _SettingsCard({required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    return Card(margin: EdgeInsets.zero, child: child);
-  }
-}
-
-class _SettingsSwitch extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  const _SettingsSwitch({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: onChanged != null
-                ? Theme.of(context).colorScheme.onSurfaceVariant
-                : Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: onChanged != null
-                        ? null
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Switch(value: value, onChanged: onChanged),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 22,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (onTap != null) ...[
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    return const SizedBox.shrink();
   }
 }

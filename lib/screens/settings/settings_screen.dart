@@ -6,13 +6,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../providers/theme_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/app_icon.dart';
+import '../../widgets/settings/settings.dart';
 import '../../core/constants/app_constants.dart';
 import 'scheduled_broadcast_screen.dart';
 import 'card_order_screen.dart';
@@ -49,24 +49,24 @@ class SettingsScreen extends ConsumerWidget {
                       maxWidth: isWide ? 900 : double.infinity,
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Column(
                         children: [
-                          _SettingsSection(
+                          // 个性化设置组
+                          SettingsSection(
                             title: '个性化',
                             icon: Icons.palette_outlined,
+                            animationDelay: 0,
                             children: [
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.brightness_6_outlined,
                                 title: '主题模式',
                                 subtitle: _getThemeModeName(themeSettings.themeMode),
-
-                                onTap: () =>
-                                    _showThemeModeDialog(context, ref, themeSettings),
+                                onTap: () => _showThemeModeDialog(context, ref, themeSettings),
                               ),
                               // A屏黑主题开关（仅在深色模式下显示）
                               if (themeSettings.themeMode != AppThemeMode.light)
-                                _SettingsSwitch(
+                                SettingsSwitchTile(
                                   icon: Icons.brightness_2_outlined,
                                   title: 'A屏黑主题',
                                   subtitle: '纯黑背景，更适合AMOLED屏幕',
@@ -75,14 +75,13 @@ class SettingsScreen extends ConsumerWidget {
                                     ref.read(themeProvider.notifier).setUseAmoledBlack(value);
                                   },
                                 ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.color_lens_outlined,
                                 title: '主题颜色',
                                 subtitle: themeSettings.useDynamicColor ? '跟随壁纸' : '自定义颜色',
-                                onTap: () =>
-                                    _showColorPickerDialog(context, ref, themeSettings),
+                                onTap: () => _showColorPickerDialog(context, ref, themeSettings),
                               ),
-                              _SettingsSwitch(
+                              SettingsSwitchTile(
                                 icon: Icons.wallpaper_outlined,
                                 title: '动态取色',
                                 subtitle: '根据壁纸自动生成主题色',
@@ -91,14 +90,15 @@ class SettingsScreen extends ConsumerWidget {
                                   ref.read(themeProvider.notifier).setUseDynamicColor(value);
                                 },
                               ),
-
                             ],
                           ),
-                          _SettingsSection(
+                          // 通知设置组
+                          SettingsSection(
                             title: '通知',
                             icon: Icons.notifications_outlined,
+                            animationDelay: 50,
                             children: [
-                              _SettingsSwitch(
+                              SettingsSwitchTile(
                                 icon: Icons.warning_amber_outlined,
                                 title: '天气预警通知',
                                 subtitle: '接收极端天气预警推送',
@@ -114,12 +114,10 @@ class SettingsScreen extends ConsumerWidget {
                                       return;
                                     }
                                   }
-                                  ref
-                                      .read(settingsProvider.notifier)
-                                      .setNotificationsEnabled(value);
+                                  ref.read(settingsProvider.notifier).setNotificationsEnabled(value);
                                 },
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.schedule_outlined,
                                 title: '定时播报',
                                 subtitle: '设置每日定时推送天气信息',
@@ -127,42 +125,38 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          _SettingsSection(
+                          // 显示设置组
+                          SettingsSection(
                             title: '显示',
                             icon: Icons.visibility_outlined,
+                            animationDelay: 100,
                             children: [
-                              _SettingsSwitch(
+                              SettingsSwitchTile(
                                 icon: Icons.psychology_outlined,
                                 title: '显示天气助手',
                                 subtitle: '在底部导航栏显示天气助手页面',
                                 value: appSettings.showAIAssistant,
                                 onChanged: (value) {
-                                  ref
-                                      .read(settingsProvider.notifier)
-                                      .setShowAIAssistant(value);
+                                  ref.read(settingsProvider.notifier).setShowAIAssistant(value);
                                 },
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.device_thermostat_outlined,
                                 title: '温度单位',
                                 subtitle: appSettings.temperatureUnit == 'celsius'
                                     ? '摄氏度 (°C)'
                                     : '华氏度 (°F)',
-                                onTap: () =>
-                                    _showTemperatureUnitDialog(context, ref, appSettings),
+                                onTap: () => _showTemperatureUnitDialog(context, ref, appSettings),
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.location_on_outlined,
                                 title: '位置显示精度',
-                                subtitle:
-                                    appSettings.locationAccuracyLevel ==
-                                        LocationAccuracyLevel.street
+                                subtitle: appSettings.locationAccuracyLevel == LocationAccuracyLevel.street
                                     ? '街道级别'
                                     : '区县级别',
-                                onTap: () =>
-                                    _showLocationAccuracyDialog(context, ref, appSettings),
+                                onTap: () => _showLocationAccuracyDialog(context, ref, appSettings),
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.sort_rounded,
                                 title: '天气卡片排序',
                                 subtitle: '自定义天气详情页卡片显示顺序',
@@ -170,62 +164,64 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          _SettingsSection(
+                          // 数据设置组
+                          SettingsSection(
                             title: '数据',
                             icon: Icons.sync_outlined,
+                            animationDelay: 150,
                             children: [
-                              _SettingsSwitch(
+                              SettingsSwitchTile(
                                 icon: Icons.autorenew_outlined,
                                 title: '自动刷新',
                                 subtitle: '每 ${appSettings.refreshInterval} 分钟自动更新',
                                 value: appSettings.autoRefreshEnabled,
                                 onChanged: (value) {
-                                  ref
-                                      .read(settingsProvider.notifier)
-                                      .setAutoRefreshEnabled(value);
+                                  ref.read(settingsProvider.notifier).setAutoRefreshEnabled(value);
                                 },
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.timer_outlined,
                                 title: '刷新间隔',
                                 subtitle: '${appSettings.refreshInterval} 分钟',
-                                onTap: () =>
-                                    _showRefreshIntervalDialog(context, ref, appSettings),
+                                onTap: () => _showRefreshIntervalDialog(context, ref, appSettings),
                               ),
                             ],
                           ),
-                          _SettingsSection(
+                          // 高级设置组
+                          SettingsSection(
                             title: '高级',
                             icon: Icons.tune_outlined,
+                            animationDelay: 200,
                             children: [
-                              _SettingsSwitch(
+                              SettingsSwitchTile(
                                 icon: Icons.swipe_outlined,
                                 title: '预测式返回手势',
                                 subtitle: '返回时显示预览动画（Android 14+）',
                                 value: appSettings.predictiveBackEnabled,
                                 onChanged: (value) {
-                                  ref
-                                      .read(settingsProvider.notifier)
-                                      .setPredictiveBackEnabled(value);
+                                  ref.read(settingsProvider.notifier).setPredictiveBackEnabled(value);
                                 },
                               ),
                             ],
                           ),
-                          _SettingsSection(
+                          // 关于设置组
+                          SettingsSection(
                             title: '关于',
                             icon: Icons.info_outline,
+                            animationDelay: 250,
+                            showDividers: false,
                             children: [
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.apps_outlined,
                                 title: '关于轻氧天气',
                                 onTap: () => _showAboutDialog(context),
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.privacy_tip_outlined,
                                 title: '隐私政策',
                                 onTap: () => _showPrivacyPolicy(context),
                               ),
-                              _SettingsTile(
+                              SettingsListTile(
                                 icon: Icons.description_outlined,
                                 title: '用户协议',
                                 onTap: () => _showUserAgreement(context),
@@ -262,34 +258,6 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showThemeModeDialog(
-    BuildContext context,
-    WidgetRef ref,
-    ThemeSettings settings,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _SelectionBottomSheet(
-        title: '主题模式',
-        items: AppThemeMode.values.map(
-          (mode) => _SelectionItem(
-            title: _getThemeModeName(mode),
-            icon: _getThemeModeIcon(mode),
-            isSelected: settings.themeMode == mode,
-            onTap: () {
-              ref.read(themeProvider.notifier).setThemeMode(mode);
-              Navigator.pop(ctx);
-            },
-          ),
-        ),
-        onClose: () => Navigator.pop(ctx),
-      ),
-    );
-  }
-
   IconData _getThemeModeIcon(AppThemeMode mode) {
     switch (mode) {
       case AppThemeMode.system:
@@ -301,15 +269,33 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showColorPickerDialog(
-    BuildContext context,
-    WidgetRef ref,
-    ThemeSettings settings,
-  ) {
+  void _showThemeModeDialog(BuildContext context, WidgetRef ref, ThemeSettings settings) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SettingsBottomSheet(
+        title: '主题模式',
+        children: AppThemeMode.values.map((mode) {
+          return SettingsSelectionItem(
+            title: _getThemeModeName(mode),
+            icon: _getThemeModeIcon(mode),
+            isSelected: settings.themeMode == mode,
+            onTap: () {
+              ref.read(themeProvider.notifier).setThemeMode(mode);
+              Navigator.pop(ctx);
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  void _showColorPickerDialog(BuildContext context, WidgetRef ref, ThemeSettings settings) {
     Color selectedColor = settings.seedColor ?? AppTheme.presetSeedColors.first;
     final hexController = TextEditingController(
-      text:
-          '#${selectedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+      text: '#${selectedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
     );
 
     showModalBottomSheet(
@@ -326,18 +312,13 @@ class SettingsScreen extends ConsumerWidget {
           builder: (context, scrollController) => Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             ),
             child: Column(
               children: [
                 _buildBottomSheetHandle(context),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: Text(
                     '选择主题颜色',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -354,13 +335,10 @@ class SettingsScreen extends ConsumerWidget {
                       const SizedBox(height: 20),
                       _buildSectionTitle(context, '预设颜色'),
                       const SizedBox(height: 12),
-                      _buildPresetColors(context, settings, selectedColor, (
-                        color,
-                      ) {
+                      _buildPresetColors(context, settings, selectedColor, (color) {
                         setState(() {
                           selectedColor = color;
-                          hexController.text =
-                              '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+                          hexController.text = '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
                         });
                       }),
                       const SizedBox(height: 20),
@@ -373,8 +351,7 @@ class SettingsScreen extends ConsumerWidget {
                         (color) {
                           setState(() {
                             selectedColor = color;
-                            hexController.text =
-                                '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+                            hexController.text = '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
                           });
                         },
                       ),
@@ -431,11 +408,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDynamicColorSection(
-    BuildContext context,
-    WidgetRef ref,
-    ThemeSettings settings,
-  ) {
+  Widget _buildDynamicColorSection(BuildContext context, WidgetRef ref, ThemeSettings settings) {
     return FutureBuilder<Color?>(
       future: _getWallpaperColor(),
       builder: (context, snapshot) {
@@ -452,13 +425,14 @@ class SettingsScreen extends ConsumerWidget {
                 return _buildDynamicColorNotSupported(context);
               }
 
-              return _SettingsCard(
+              return Card(
+                margin: EdgeInsets.zero,
                 child: InkWell(
                   onTap: () {
                     ref.read(themeProvider.notifier).setUseDynamicColor(true);
                     Navigator.pop(context);
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -477,9 +451,7 @@ class SettingsScreen extends ConsumerWidget {
                                 : null,
                             boxShadow: [
                               BoxShadow(
-                                color: (dynamicColor ?? Colors.grey).withValues(
-                                  alpha: 0.3,
-                                ),
+                                color: (dynamicColor ?? Colors.grey).withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -493,19 +465,17 @@ class SettingsScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 '壁纸取色',
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(fontWeight: FontWeight.w500),
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '检测颜色: #${dynamicColor!.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                      fontFamily: 'monospace',
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  fontFamily: 'monospace',
+                                ),
                               ),
                             ],
                           ),
@@ -524,13 +494,14 @@ class SettingsScreen extends ConsumerWidget {
           );
         }
 
-        return _SettingsCard(
+        return Card(
+          margin: EdgeInsets.zero,
           child: InkWell(
             onTap: () {
               ref.read(themeProvider.notifier).setUseDynamicColor(true);
               Navigator.pop(context);
             },
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -549,9 +520,7 @@ class SettingsScreen extends ConsumerWidget {
                           : null,
                       boxShadow: [
                         BoxShadow(
-                          color: wallpaperColor.withValues(
-                            alpha: 0.3,
-                          ),
+                          color: wallpaperColor.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -565,19 +534,17 @@ class SettingsScreen extends ConsumerWidget {
                       children: [
                         Text(
                           '壁纸取色',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.w500),
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '检测颜色: #${wallpaperColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                                fontFamily: 'monospace',
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontFamily: 'monospace',
+                          ),
                         ),
                       ],
                     ),
@@ -596,7 +563,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  /// 获取壁纸颜色
   Future<Color?> _getWallpaperColor() async {
     if (defaultTargetPlatform != TargetPlatform.android) return null;
 
@@ -616,10 +582,8 @@ class SettingsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3),
           width: 1,
@@ -662,7 +626,8 @@ class SettingsScreen extends ConsumerWidget {
     Color selectedColor,
     Function(Color) onColorSelected,
   ) {
-    return _SettingsCard(
+    return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.count(
@@ -697,9 +662,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: isSelected
                     ? Icon(
                         Icons.check,
-                        color:
-                            ThemeData.estimateBrightnessForColor(color) ==
-                                Brightness.dark
+                        color: ThemeData.estimateBrightnessForColor(color) == Brightness.dark
                             ? Colors.white
                             : Colors.black,
                       )
@@ -718,7 +681,8 @@ class SettingsScreen extends ConsumerWidget {
     TextEditingController hexController,
     Function(Color) onColorSelected,
   ) {
-    return _SettingsCard(
+    return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: ColorPicker(
@@ -739,7 +703,8 @@ class SettingsScreen extends ConsumerWidget {
     TextEditingController hexController,
     Function(Color) onColorParsed,
   ) {
-    return _SettingsCard(
+    return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -797,7 +762,8 @@ class SettingsScreen extends ConsumerWidget {
       brightness: Theme.of(context).brightness,
     );
 
-    return _SettingsCard(
+    return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -906,11 +872,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showRefreshIntervalDialog(
-    BuildContext context,
-    WidgetRef ref,
-    AppSettings settings,
-  ) {
+  void _showRefreshIntervalDialog(BuildContext context, WidgetRef ref, AppSettings settings) {
     final intervals = [15, 30, 60, 120];
 
     showModalBottomSheet(
@@ -918,10 +880,10 @@ class SettingsScreen extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _SelectionBottomSheet(
+      builder: (ctx) => SettingsBottomSheet(
         title: '刷新间隔',
-        items: intervals.map(
-          (interval) => _SelectionItem(
+        children: intervals.map((interval) {
+          return SettingsSelectionItem(
             title: '$interval 分钟',
             icon: Icons.timer_outlined,
             isSelected: settings.refreshInterval == interval,
@@ -929,18 +891,13 @@ class SettingsScreen extends ConsumerWidget {
               ref.read(settingsProvider.notifier).setRefreshInterval(interval);
               Navigator.pop(ctx);
             },
-          ),
-        ),
-        onClose: () => Navigator.pop(ctx),
+          );
+        }).toList(),
       ),
     );
   }
 
-  void _showTemperatureUnitDialog(
-    BuildContext context,
-    WidgetRef ref,
-    AppSettings settings,
-  ) {
+  void _showTemperatureUnitDialog(BuildContext context, WidgetRef ref, AppSettings settings) {
     final units = [
       ('celsius', '摄氏度', '°C', '温度显示为摄氏度', Icons.device_thermostat_outlined),
       ('fahrenheit', '华氏度', '°F', '温度显示为华氏度', Icons.thermostat_outlined),
@@ -951,10 +908,10 @@ class SettingsScreen extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _SelectionBottomSheet(
+      builder: (ctx) => SettingsBottomSheet(
         title: '温度单位',
-        items: units.map(
-          (unit) => _SelectionItem(
+        children: units.map((unit) {
+          return SettingsSelectionItem(
             title: '${unit.$2} (${unit.$3})',
             subtitle: unit.$4,
             icon: unit.$5,
@@ -963,31 +920,16 @@ class SettingsScreen extends ConsumerWidget {
               ref.read(settingsProvider.notifier).setTemperatureUnit(unit.$1);
               Navigator.pop(ctx);
             },
-          ),
-        ),
-        onClose: () => Navigator.pop(ctx),
+          );
+        }).toList(),
       ),
     );
   }
 
-  void _showLocationAccuracyDialog(
-    BuildContext context,
-    WidgetRef ref,
-    AppSettings settings,
-  ) {
+  void _showLocationAccuracyDialog(BuildContext context, WidgetRef ref, AppSettings settings) {
     final options = [
-      (
-        LocationAccuracyLevel.district,
-        '展示区/县',
-        '定位到行政区级别',
-        Icons.location_city,
-      ),
-      (
-        LocationAccuracyLevel.street,
-        '展示附近地标/街道',
-        '精确定位到街道级别',
-        Icons.location_on_outlined,
-      ),
+      (LocationAccuracyLevel.district, '展示区/县', '定位到行政区级别', Icons.location_city),
+      (LocationAccuracyLevel.street, '展示附近地标/街道', '精确定位到街道级别', Icons.location_on_outlined),
     ];
 
     showModalBottomSheet(
@@ -995,23 +937,20 @@ class SettingsScreen extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _SelectionBottomSheet(
+      builder: (ctx) => SettingsBottomSheet(
         title: '位置显示',
-        items: options.map(
-          (option) => _SelectionItem(
+        children: options.map((option) {
+          return SettingsSelectionItem(
             title: option.$2,
             subtitle: option.$3,
             icon: option.$4,
             isSelected: settings.locationAccuracyLevel == option.$1,
             onTap: () {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setLocationAccuracyLevel(option.$1);
+              ref.read(settingsProvider.notifier).setLocationAccuracyLevel(option.$1);
               Navigator.pop(ctx);
             },
-          ),
-        ),
-        onClose: () => Navigator.pop(ctx),
+          );
+        }).toList(),
       ),
     );
   }
@@ -1060,7 +999,7 @@ class SettingsScreen extends ConsumerWidget {
         title: '隐私政策',
         content: [
           '生效日期：2026年2月16日',
-          '轻氧天气（以下简称“我们”）非常重视您的隐私。本协议阐述了我们如何处理您的个人信息。',
+          '轻氧天气（以下简称"我们"）非常重视您的隐私。本协议阐述了我们如何处理您的个人信息。',
           (
             '1. 信息收集',
             '我们仅在您使用应用期间收集必要的信息，包括：\n• 位置信息：仅用于获取您当前位置的天气预报。您可以随时在系统中关闭该权限。\n• 天气查询历史：仅用于天气助手功能，帮助您获取更准确的天气相关回答。',
@@ -1098,365 +1037,6 @@ class SettingsScreen extends ConsumerWidget {
           ('4. 第三方服务', '本应用使用和风天气、彩云天气、高德地图和DeepSeek等第三方服务，您在使用本应用时即表示同意这些第三方服务的相关条款。'),
           ('5. 协议变更', '我们保留随时修改本协议的权利，修改后的协议将在应用内公布。'),
         ],
-      ),
-    );
-  }
-}
-
-class _SettingsSection extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final List<Widget> children;
-
-  const _SettingsSection({
-    required this.title,
-    required this.icon,
-    required this.children,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _SettingsCard(child: Column(children: children)),
-        ],
-      ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.02);
-  }
-}
-
-class _SettingsCard extends StatelessWidget {
-  final Widget child;
-
-  const _SettingsCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: child,
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 22,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (onTap != null) ...[
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsSwitch extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _SettingsSwitch({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onChanged(!value),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 22,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Switch(value: value, onChanged: onChanged),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SelectionItem {
-  final String title;
-  final String? subtitle;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _SelectionItem({
-    required this.title,
-    this.subtitle,
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-  });
-}
-
-class _SelectionBottomSheet extends StatelessWidget {
-  final String title;
-  final Iterable<_SelectionItem> items;
-  final VoidCallback onClose;
-
-  const _SelectionBottomSheet({
-    required this.title,
-    required this.items,
-    required this.onClose,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.7,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildBottomSheetHandle(context),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items.elementAt(index);
-                    return _SelectionTile(item: item).animate().fadeIn(
-                      delay: Duration(milliseconds: index * 50),
-                      duration: 200.ms,
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBottomSheetHandle(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 32,
-        height: 4,
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.outlineVariant,
-          borderRadius: BorderRadius.circular(2),
-        ),
-      ),
-    );
-  }
-}
-
-class _SelectionTile extends StatelessWidget {
-  final _SelectionItem item;
-
-  const _SelectionTile({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: item.isSelected
-            ? colorScheme.secondaryContainer
-            : colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: item.onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(
-                  item.icon,
-                  size: 24,
-                  color: item.isSelected
-                      ? colorScheme.onSecondaryContainer
-                      : colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: item.isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: item.isSelected
-                              ? colorScheme.onSecondaryContainer
-                              : colorScheme.onSurface,
-                        ),
-                      ),
-                      if (item.subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          item.subtitle!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: item.isSelected
-                                    ? colorScheme.onSecondaryContainer
-                                          .withValues(alpha: 0.7)
-                                    : colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (item.isSelected)
-                  Icon(
-                    Icons.check_circle,
-                    color: colorScheme.onSecondaryContainer,
-                  ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -1508,11 +1088,10 @@ class _ContentBottomSheet extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           item,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                height: 1.5,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            height: 1.5,
+                          ),
                         ),
                       );
                     } else if (item is (String, String)) {
@@ -1523,20 +1102,18 @@ class _ContentBottomSheet extends StatelessWidget {
                           children: [
                             Text(
                               item.$1,
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurface,
-                                  ),
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               item.$2,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    height: 1.5,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                height: 1.5,
+                              ),
                             ),
                           ],
                         ),
@@ -1632,8 +1209,9 @@ class _AboutBottomSheet extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             '版本 ${AppConstants.appVersion}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -1741,7 +1319,9 @@ class _AboutBottomSheet extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String title,
-    String content, {bool isLink = false}) {
+    String content, {
+    bool isLink = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
