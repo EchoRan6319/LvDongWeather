@@ -270,6 +270,12 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showThemeModeDialog(BuildContext context, WidgetRef ref, ThemeSettings settings) {
+    final themeModes = [
+      (AppThemeMode.system, '跟随系统', '自动切换浅色或深色主题'),
+      (AppThemeMode.light, '浅色模式', '使用浅色主题显示'),
+      (AppThemeMode.dark, '深色模式', '使用深色主题显示'),
+    ];
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -277,13 +283,14 @@ class SettingsScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => SettingsBottomSheet(
         title: '主题模式',
-        children: AppThemeMode.values.map((mode) {
+        children: themeModes.map((mode) {
           return SettingsSelectionItem(
-            title: _getThemeModeName(mode),
-            icon: _getThemeModeIcon(mode),
-            isSelected: settings.themeMode == mode,
+            title: mode.$2,
+            subtitle: mode.$3,
+            icon: _getThemeModeIcon(mode.$1),
+            isSelected: settings.themeMode == mode.$1,
             onTap: () {
-              ref.read(themeProvider.notifier).setThemeMode(mode);
+              ref.read(themeProvider.notifier).setThemeMode(mode.$1);
               Navigator.pop(ctx);
             },
           );
@@ -873,7 +880,12 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _showRefreshIntervalDialog(BuildContext context, WidgetRef ref, AppSettings settings) {
-    final intervals = [15, 30, 60, 120];
+    final intervals = [
+      (15, '每15分钟自动更新天气数据'),
+      (30, '每30分钟自动更新天气数据'),
+      (60, '每小时自动更新天气数据'),
+      (120, '每2小时自动更新天气数据'),
+    ];
 
     showModalBottomSheet(
       context: context,
@@ -884,11 +896,12 @@ class SettingsScreen extends ConsumerWidget {
         title: '刷新间隔',
         children: intervals.map((interval) {
           return SettingsSelectionItem(
-            title: '$interval 分钟',
+            title: '${interval.$1} 分钟',
+            subtitle: interval.$2,
             icon: Icons.timer_outlined,
-            isSelected: settings.refreshInterval == interval,
+            isSelected: settings.refreshInterval == interval.$1,
             onTap: () {
-              ref.read(settingsProvider.notifier).setRefreshInterval(interval);
+              ref.read(settingsProvider.notifier).setRefreshInterval(interval.$1);
               Navigator.pop(ctx);
             },
           );
