@@ -8,7 +8,7 @@ class AppConstants {
   static const String appName = '轻氧天气';
 
   /// 应用版本号（从包信息动态获取）
-  static String _appVersion = '4.1.0-3';
+  static String _appVersion = '999.0.0';
   static String get appVersion => _appVersion;
 
   /// 初始化应用版本号
@@ -19,7 +19,7 @@ class AppConstants {
       _appVersion = packageInfo.version;
     } catch (e) {
       // 如果获取失败，使用默认版本号
-      _appVersion = '4.1.0-3';
+      _appVersion = '999.0.0';
     }
   }
 

@@ -94,22 +94,18 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
             ),
             child: CustomScrollView(
               slivers: [
-                SliverAppBar(
-                  expandedHeight: 280,
-                  floating: false,
-                  pinned: true,
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.add_location_outlined),
-                      onPressed: _showCitySelector,
-                      tooltip: '添加城市',
-                    ),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: _buildCurrentWeather(
-                      weatherState,
-                      defaultCity,
-                      ref.watch(settingsProvider),
+                SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isWide ? 900 : double.infinity,
+                      ),
+                      child: _buildCurrentWeather(
+                        weatherState,
+                        defaultCity,
+                        ref.watch(settingsProvider),
+                      ),
                     ),
                   ),
                 ),
@@ -147,17 +143,8 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     // 加载中状态
     if (state.isLoading && state.weatherData == null) {
       return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.surfaceContainer,
-              Theme.of(context).colorScheme.surface,
-            ],
-          ),
-        ),
-        child: const Center(child: CircularProgressIndicator()),
+        color: Colors.transparent,
+        child: const SizedBox.shrink(),
       );
     }
 
@@ -182,26 +169,44 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
     return Container(
       color: colorScheme.surfaceContainer,
       child: Padding(
-        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 0, top: 36),
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          bottom: 0,
+          top: 12 + MediaQuery.of(context).padding.top,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // 城市名称
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Stack(
+              alignment: Alignment.center,
               children: [
-                if (location?.isLocated == true) ...[
-                  Icon(
-                    Icons.location_on,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  location?.name ?? '未知位置',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w500,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (location?.isLocated == true) ...[
+                      Icon(
+                        Icons.location_on,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(
+                      location?.name ?? '未知位置',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  right: 0,
+                  child: IconButton(
+                    icon: const Icon(Icons.add_location_outlined),
+                    onPressed: _showCitySelector,
+                    tooltip: '添加城市',
                   ),
                 ),
               ],
@@ -424,7 +429,7 @@ class _WeatherScreenState extends ConsumerState<WeatherScreen> {
         : ['hourly', ...order];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
